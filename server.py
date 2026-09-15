@@ -43,7 +43,7 @@ def get_song_metadata(file_path, relative_path):
         parts = name_without_ext.split(" _ ", 1)
         title = parts[0].strip()
     
-    url_path = "/data/" + urllib.parse.quote(str(relative_path).replace("\\", "/"))
+    url_path = "data/" + urllib.parse.quote(str(relative_path).replace("\\", "/"))
     folder_name = str(relative_path.parent) if str(relative_path.parent) != "." else "Tất cả"
     
     return {

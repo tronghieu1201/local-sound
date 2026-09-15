@@ -182,27 +182,27 @@ body {
     height: 12px;
     border-radius: 2px;
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
-    background-image: url("/data/logo/vietnam.png");
+    background-image: url("../data/logo/vietnam.png");
 }
 
 .icon-cat.icon-tghy {
-    background-image: url("/data/logo/trghy.jpg");
+    background-image: url("../data/logo/trghy.jpg");
 }
 
 .icon-cat.icon-cooking {
-    background-image: url("/data/logo/cooking.png");
+    background-image: url("../data/logo/cooking.png");
 }
 
 .icon-cat.icon-karaoke {
-    background-image: url("/data/logo/karaoke.png");
+    background-image: url("../data/logo/karaoke.png");
 }
 
 .icon-cat.icon-sleep {
-    background-image: url("/data/logo/sleeping.png");
+    background-image: url("../data/logo/sleeping.png");
 }
 
 .icon-cat.icon-note {
-    background-image: url("/data/logo/note.png");
+    background-image: url("../data/logo/note.png");
 }
 
 .cat-tag-btn .icon-cat {
