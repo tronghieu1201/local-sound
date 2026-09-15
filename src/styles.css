@@ -185,7 +185,8 @@ body {
     background-image: url("../data/logo/vietnam.png");
 }
 
-.icon-cat.icon-tghy {
+.icon-cat.icon-tghy,
+.icon-cat.icon-trghy {
     background-image: url("../data/logo/trghy.jpg");
 }
 
@@ -626,54 +627,60 @@ body {
 /* Toast Notification Styles */
 .toast-container {
     position: fixed;
-    top: 24px;
-    right: 24px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 10000;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 10px;
     pointer-events: none;
+    width: max-content;
+    max-width: 90vw;
 }
 
 .toast {
     pointer-events: auto;
-    min-width: 280px;
-    max-width: 420px;
-    padding: 12px 18px;
+    min-width: 260px;
+    max-width: 380px;
+    padding: 12px 20px;
     border-radius: var(--radius-md);
-    background: rgba(15, 23, 42, 0.95);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(15, 23, 42, 0.96);
+    border: 1px solid rgba(0, 242, 254, 0.3);
     color: #f1f5f9;
-    font-size: 0.88rem;
-    font-weight: 500;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    justify-content: center;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(16px);
     display: flex;
     align-items: center;
     gap: 10px;
-    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: toastPopCenter 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .toast.toast-warning {
-    border-color: rgba(245, 158, 11, 0.4);
-    background: rgba(30, 25, 15, 0.95);
+    border-color: rgba(245, 158, 11, 0.5);
+    background: rgba(30, 25, 15, 0.96);
     color: #fef08a;
 }
 
 .toast.toast-success {
-    border-color: rgba(16, 185, 129, 0.4);
-    background: rgba(15, 30, 22, 0.95);
+    border-color: rgba(16, 185, 129, 0.5);
+    background: rgba(15, 30, 22, 0.96);
     color: #a7f3d0;
 }
 
-@keyframes toastSlideIn {
+@keyframes toastPopCenter {
     from {
         opacity: 0;
-        transform: translateY(-20px) scale(0.95);
+        transform: scale(0.85);
     }
     to {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: scale(1);
     }
 }
 
@@ -1026,10 +1033,23 @@ body.power-saver-active {
     transition: var(--transition);
 }
 
+.menu-option-btn span {
+    color: var(--text-dim);
+    transition: var(--transition);
+}
+
+.menu-option-btn.active {
+    background: rgba(0, 217, 245, 0.12);
+    border-color: var(--primary);
+}
+
+.menu-option-btn.active span {
+    color: var(--text-main);
+}
+
 .menu-option-btn:hover {
     background: rgba(0, 242, 254, 0.12);
     border-color: var(--primary);
-    color: var(--primary);
 }
 
 .play-group {
@@ -1352,10 +1372,14 @@ body.power-saver-active {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100;
+    z-index: 1000;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
+}
+
+#confirm-modal {
+    z-index: 10500;
 }
 
 .modal.active {
@@ -2320,12 +2344,18 @@ kbd {
         overflow: visible;
     }
 
-    body.mobile-view-library .playlist-section {
-        display: flex !important;
+    body.mobile-view-library .playlist-section,
+    body.mobile-view-library .notes-section {
+        display: flex;
         padding: 14px;
         height: auto;
         min-height: 350px;
         overflow: visible;
+    }
+
+    body.mobile-view-library .playlist-section.hidden,
+    body.mobile-view-library .notes-section.hidden {
+        display: none !important;
     }
 
     body.mobile-view-library .song-item {

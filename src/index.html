@@ -94,7 +94,7 @@
                         <circle cx="11" cy="11" r="8"></circle>
                         <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
-                    <input type="text" id="search-input" placeholder="Gõ tên bài hát (A, An, Anh...)... (phím tắt '/')">
+                    <input type="text" id="search-input" placeholder="Tìm kiếm bài hát...">
                     <button id="clear-search" class="hidden">&times;</button>
                     <div id="search-results-dropdown" class="search-results-dropdown hidden"></div>
                 </div>
@@ -264,8 +264,7 @@
             <section class="notes-section hidden" id="notes-section">
                 <div class="notes-header">
                     <div class="notes-title-group">
-                        <h2><span class="icon-cat icon-note" style="width: 22px; height: 22px;"></span> Danh Sách Bài
-                            Hát Cần Tải</h2>
+                        <h2><span class="icon-cat icon-note" style="width: 22px; height: 22px;"></span> Note</h2>
                     </div>
                     <span id="note-save-status" class="note-save-status">✓ Đã lưu tự động</span>
                 </div>
@@ -276,7 +275,7 @@
                         <div class="notes-toolbar">
                             <div class="notes-toolbar-left">
                                 <span class="notes-toolbar-title">Checklist</span>
-                                <span id="checklist-count" class="checklist-count-badge">0/0 hoàn thành</span>
+                                <span id="checklist-count" class="checklist-count-badge">0/0 ✓</span>
                             </div>
                             <div class="notes-actions">
                                 <button class="btn-note-action" id="btn-copy-notes"
@@ -354,11 +353,10 @@
     <div class="modal" id="timer-modal">
         <div class="modal-content small">
             <div class="modal-header">
-                <h3>⏱️ Hẹn Giờ Tắt Nhạc</h3>
+                <h3>Hẹn Giờ Tắt Nhạc</h3>
                 <button class="close-btn" id="close-timer">&times;</button>
             </div>
             <div class="modal-body text-center">
-                <p>Chọn mốc thời gian hoặc tự nhập số phút để tắt nhạc:</p>
                 <div class="timer-options">
                     <button class="timer-btn" data-time="15">15 Phút</button>
                     <button class="timer-btn" data-time="20">20 Phút</button>
@@ -429,24 +427,21 @@
     <div class="modal" id="player-more-modal">
         <div class="modal-content small">
             <div class="modal-header">
-                <h3>⚙️ Tùy Chọn Bài Hát & Phát Nhạc</h3>
+                <h3>Tùy Chọn Bài Hát</h3>
                 <button class="close-btn" id="close-player-more">&times;</button>
             </div>
             <div class="modal-body" style="display: flex; flex-direction: column; gap: 10px;">
                 <button class="menu-option-btn" id="pm-fav-btn">
-                    <span>❤️ Yêu thích (trghy):</span> <strong id="pm-fav-label">Bấm để lưu</strong>
-                </button>
-                <button class="menu-option-btn" id="pm-cat-btn">
-                    <span>🏷️ Phân loại danh mục bài hát</span>
+                    <span id="pm-fav-title">Danh sách:</span> <strong id="pm-fav-label">Chưa lưu</strong>
                 </button>
                 <button class="menu-option-btn" id="pm-mode-btn">
-                    <span>🔁 Chế độ phát:</span> <strong id="pm-mode-label">Theo thứ tự</strong>
+                    <span>Chế độ phát:</span> <strong id="pm-mode-label">Theo thứ tự</strong>
                 </button>
                 <button class="menu-option-btn" id="pm-timer-btn">
-                    <span>⏱️ Hẹn giờ tắt nhạc</span>
+                    <span>Hẹn giờ tắt nhạc</span>
                 </button>
                 <button class="menu-option-btn" id="pm-eq-btn">
-                    <span>🎛️ Bộ cân bằng âm thanh (Equalizer)</span>
+                    <span>Bộ cân bằng âm thanh</span>
                 </button>
             </div>
         </div>
@@ -455,13 +450,17 @@
     <!-- Category Picker Modal (Long Press Heart Icon) -->
     <div class="modal" id="cat-picker-modal">
         <div class="modal-content small">
-            <div class="modal-header">
-                <h3>❤️ Chọn Danh Mục Lưu Bài Hát</h3>
-                <button class="close-btn" id="close-cat-picker">&times;</button>
+            <div class="modal-header" style="position: relative; justify-content: center;">
+                <h3 style="text-align: center; margin: 0; width: 100%;">Đưa bài hát vào danh sách</h3>
+                <button class="close-btn" id="close-cat-picker"
+                    style="position: absolute; right: 0; top: 50%; transform: translateY(-50%);">&times;</button>
             </div>
             <div class="modal-body">
-                <p id="cat-picker-song-name" style="margin-bottom: 14px; font-size: 0.9rem; color: var(--primary); font-weight: 600; text-align: center;"></p>
-                <div class="cat-picker-options" id="cat-picker-options" style="display: flex; flex-direction: column; gap: 10px;">
+                <p id="cat-picker-song-name"
+                    style="margin-bottom: 14px; font-size: 0.9rem; color: var(--primary); font-weight: 600; text-align: center;">
+                </p>
+                <div class="cat-picker-options" id="cat-picker-options"
+                    style="display: flex; flex-direction: column; gap: 10px;">
                 </div>
             </div>
         </div>
@@ -517,7 +516,9 @@
     <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
         <button class="mobile-nav-tab active" id="mobile-tab-for-you" data-mobile-tab="for-you">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+                <path
+                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z">
+                </path>
             </svg>
             <span>Dành cho bạn</span>
         </button>
