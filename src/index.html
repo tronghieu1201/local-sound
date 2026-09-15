@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local Music Player - Trình Nghe Nhạc Offline</title>
+    <link rel="icon" type="image/png" href="../data/logo/logo.png">
     <link rel="stylesheet" href="styles.css">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
-<body>
+<body class="mobile-view-for-you">
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
@@ -95,6 +96,7 @@
                     </svg>
                     <input type="text" id="search-input" placeholder="Gõ tên bài hát (A, An, Anh...)... (phím tắt '/')">
                     <button id="clear-search" class="hidden">&times;</button>
+                    <div id="search-results-dropdown" class="search-results-dropdown hidden"></div>
                 </div>
 
                 <div class="header-actions">
@@ -208,6 +210,11 @@
                                 </svg>
                             </button>
                         </div>
+
+                        <!-- 3-Dots More Options Button -->
+                        <button class="btn-player-more" id="btn-player-more" title="Tùy chọn thêm">
+                            ⋮
+                        </button>
                     </div>
 
                     <!-- Volume Control -->
@@ -418,6 +425,48 @@
         </div>
     </div>
 
+    <!-- Player 3-Dots Mobile Menu Modal -->
+    <div class="modal" id="player-more-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3>⚙️ Tùy Chọn Bài Hát & Phát Nhạc</h3>
+                <button class="close-btn" id="close-player-more">&times;</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="menu-option-btn" id="pm-fav-btn">
+                    <span>❤️ Yêu thích (trghy):</span> <strong id="pm-fav-label">Bấm để lưu</strong>
+                </button>
+                <button class="menu-option-btn" id="pm-cat-btn">
+                    <span>🏷️ Phân loại danh mục bài hát</span>
+                </button>
+                <button class="menu-option-btn" id="pm-mode-btn">
+                    <span>🔁 Chế độ phát:</span> <strong id="pm-mode-label">Theo thứ tự</strong>
+                </button>
+                <button class="menu-option-btn" id="pm-timer-btn">
+                    <span>⏱️ Hẹn giờ tắt nhạc</span>
+                </button>
+                <button class="menu-option-btn" id="pm-eq-btn">
+                    <span>🎛️ Bộ cân bằng âm thanh (Equalizer)</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Picker Modal (Long Press Heart Icon) -->
+    <div class="modal" id="cat-picker-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3>❤️ Chọn Danh Mục Lưu Bài Hát</h3>
+                <button class="close-btn" id="close-cat-picker">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="cat-picker-song-name" style="margin-bottom: 14px; font-size: 0.9rem; color: var(--primary); font-weight: 600; text-align: center;"></p>
+                <div class="cat-picker-options" id="cat-picker-options" style="display: flex; flex-direction: column; gap: 10px;">
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Ultra-Minimal OLED Power Saver Overlay -->
     <div class="power-saver-overlay hidden" id="power-saver-overlay">
         <div class="power-saver-content" onclick="event.stopPropagation()">
@@ -439,6 +488,47 @@
 
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
+
+    <!-- Floating Mobile Mini Player (Shown on "Của Tui" tab on mobile) -->
+    <div class="mobile-mini-player hidden" id="mobile-mini-player">
+        <div class="mini-player-left" id="mini-player-info">
+            <div class="mini-disc" id="mini-disc">
+                <img id="mini-img" src="../data/logo/cd.png" alt="Mini CD">
+            </div>
+            <div class="mini-track-info">
+                <div class="mini-title" id="mini-title">Chưa chọn bài hát</div>
+                <div class="mini-artist" id="mini-artist">LocalSound</div>
+            </div>
+        </div>
+        <div class="mini-player-controls">
+            <button class="mini-btn-play" id="mini-play-btn" title="Phát / Tạm dừng">
+                <svg id="mini-play-icon" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <svg id="mini-pause-icon" class="hidden" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16"></rect>
+                    <rect x="14" y="4" width="4" height="16"></rect>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar (2 Tabs: Dành cho bạn / Của Tui) -->
+    <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+        <button class="mobile-nav-tab active" id="mobile-tab-for-you" data-mobile-tab="for-you">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"></path>
+            </svg>
+            <span>Dành cho bạn</span>
+        </button>
+        <button class="mobile-nav-tab" id="mobile-tab-library" data-mobile-tab="library">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Của Tui</span>
+        </button>
+    </nav>
 
     <!-- Hidden HTML5 Audio Element -->
     <audio id="audio-player" preload="auto"></audio>

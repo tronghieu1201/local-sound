@@ -86,6 +86,10 @@ class MusicPlayerHandler(http.server.SimpleHTTPRequestHandler):
         
         if decoded_path == "/" or decoded_path == "/index.html":
             return str(SRC_DIR / "index.html")
+        elif decoded_path == "/favicon.ico":
+            fav = DATA_DIR / "logo" / "logo.png"
+            if fav.exists():
+                return str(fav)
         elif decoded_path.startswith("/src/"):
             rel = decoded_path[5:]
             return str(SRC_DIR / rel)
@@ -333,23 +337,39 @@ def main():
     os.chdir(BASE_DIR)
     songs_found = scan_songs()
     user_data = read_user_data()
+
+    selected_port = PORT
+    httpd = None
+
+    for p in range(PORT, PORT + 10):
+        try:
+            socketserver.TCPServer.allow_reuse_address = True
+            httpd = socketserver.TCPServer(("", p), MusicPlayerHandler)
+            selected_port = p
+            break
+        except OSError:
+            continue
+
+    if httpd is None:
+        print(f"Loi: Khong the mo cong tu {PORT} den {PORT+9}. Cong dang bi chiem dung.")
+        sys.exit(1)
+
     print("==================================================")
     print("  [*] LOCAL MUSIC PLAYER IS RUNNING (LOCAL OFFLINE)")
     print("==================================================")
     print(f"  Tim thong tin {len(songs_found)} bai hat trong 'data/'.")
     print(f"  File du lieu nguoi dung: {USER_DATA_FILE.name} (Luu vinh vien tren o đia)")
-    print(f"  Truy cap: http://localhost:{PORT}")
+    print(f"  Truy cap: http://localhost:{selected_port}")
     print("  RAM tieu thu: ~15MB | Support 206 Partial Content (Instant Seek)")
     print("==================================================")
     
     if "--no-browser" not in sys.argv:
-        webbrowser.open(f"http://localhost:{PORT}")
+        webbrowser.open(f"http://localhost:{selected_port}")
     
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", PORT), MusicPlayerHandler) as httpd:
+    with httpd:
         try:
             httpd.serve_forever()
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, SystemExit):
             print("\nDang dung server...")
             httpd.server_close()
 

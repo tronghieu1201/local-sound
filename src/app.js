@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFolder = 'all';
     let searchQuery = '';
     let sortOption = 'title-asc';
+    let mobileTab = 'for-you';
 
     // Note page state
     let noteText = '';
@@ -168,6 +169,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Toast Notification Helper ---
     function showToast(message, type = 'info') {
+        if (window.innerWidth <= 768 && message.includes('Đang phát')) {
+            return;
+        }
         const container = document.getElementById('toast-container');
         if (!container) return;
         const toast = document.createElement('div');
@@ -558,27 +562,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (notesSection) notesSection.classList.add('hidden');
         }
 
+        const isMobile = window.innerWidth <= 768;
+
         if (currentTab === 'nhacdo') {
             currentPlaylist = currentPlaylist.filter(s => s && getSongCategories(s.id).includes('nhacdo'));
-            playlistHeadingEl.textContent = 'Danh Sách Bài Hát Nhạc Đỏ';
+            playlistHeadingEl.textContent = isMobile ? 'Nhạc Đỏ' : 'Danh Sách Bài Hát Nhạc Đỏ';
         } else if (currentTab === 'tghy') {
             currentPlaylist = currentPlaylist.filter(s => s && (getSongCategories(s.id).includes('tghy') || getSongCategories(s.id).includes('xxx')));
-            playlistHeadingEl.textContent = 'Danh Sách Bài Hát trghy';
+            playlistHeadingEl.textContent = isMobile ? 'trghy' : 'Danh Sách Bài Hát trghy';
         } else if (currentTab === 'cooking') {
             currentPlaylist = currentPlaylist.filter(s => s && (getSongCategories(s.id).includes('cooking') || (s.folder || '').toLowerCase().includes('cooking')));
-            playlistHeadingEl.textContent = 'Danh Sách Bài Hát Nấu Ăn';
+            playlistHeadingEl.textContent = isMobile ? 'Nấu Ăn' : 'Danh Sách Bài Hát Nấu Ăn';
         } else if (currentTab === 'karaoke') {
             currentPlaylist = currentPlaylist.filter(s => s && getSongCategories(s.id).includes('karaoke'));
-            playlistHeadingEl.textContent = 'Danh Sách Bài Hát Karaoke';
+            playlistHeadingEl.textContent = isMobile ? 'Karaoke' : 'Danh Sách Bài Hát Karaoke';
         } else if (currentTab === 'sleep') {
             currentPlaylist = currentPlaylist.filter(s => s && (getSongCategories(s.id).includes('sleep') || (s.folder || '').toLowerCase().includes('sleep')));
-            playlistHeadingEl.textContent = 'Danh Sách Bài Hát Đi Ngủ';
+            playlistHeadingEl.textContent = isMobile ? 'Đi Ngủ' : 'Danh Sách Bài Hát Đi Ngủ';
         } else if (currentTab === 'recent') {
             const recentArr = Array.isArray(recentSongs) ? recentSongs : [];
             currentPlaylist = recentArr.map(id => allSongs.find(s => s && s.id === id)).filter(Boolean);
             playlistHeadingEl.textContent = 'Vừa Nghe Gần Đây';
         } else {
-            playlistHeadingEl.textContent = 'Tất Cả Bài Hát (A - Z)';
+            playlistHeadingEl.textContent = isMobile ? 'Tất Cả' : 'Tất Cả Bài Hát (A - Z)';
         }
 
         // Filter by Folder
@@ -670,6 +676,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="song-actions-wrapper">
                     <button class="btn-song-more" title="Tùy chọn">⋮</button>
                     <div class="song-dropdown-menu hidden">
+                        <div class="dropdown-header-label">Danh mục</div>
+                        <button class="dropdown-item dropdown-cat-item ${hasNhacdo ? 'active' : ''}" data-cat="nhacdo">
+                            <span class="icon-cat icon-nhacdo"></span> <span>Nhạc Đỏ</span> ${hasNhacdo ? '<span class="cat-check">✓</span>' : ''}
+                        </button>
+                        <button class="dropdown-item dropdown-cat-item ${hasTghy ? 'active' : ''}" data-cat="tghy">
+                            <span class="icon-cat icon-tghy"></span> <span>trghy</span> ${hasTghy ? '<span class="cat-check">✓</span>' : ''}
+                        </button>
+                        <button class="dropdown-item dropdown-cat-item ${hasCooking ? 'active' : ''}" data-cat="cooking">
+                            <span class="icon-cat icon-cooking"></span> <span>Nấu Ăn</span> ${hasCooking ? '<span class="cat-check">✓</span>' : ''}
+                        </button>
+                        <button class="dropdown-item dropdown-cat-item ${hasKaraoke ? 'active' : ''}" data-cat="karaoke">
+                            <span class="icon-cat icon-karaoke"></span> <span>Karaoke</span> ${hasKaraoke ? '<span class="cat-check">✓</span>' : ''}
+                        </button>
+                        <button class="dropdown-item dropdown-cat-item ${hasSleep ? 'active' : ''}" data-cat="sleep">
+                            <span class="icon-cat icon-sleep"></span> <span>Đi Ngủ</span> ${hasSleep ? '<span class="cat-check">✓</span>' : ''}
+                        </button>
+                        <div class="dropdown-divider"></div>
                         <button class="dropdown-item danger btn-delete-song">🗑️ Xoá bài hát</button>
                     </div>
                 </div>
@@ -681,37 +704,51 @@ document.addEventListener('DOMContentLoaded', () => {
                 playTrack(index);
             });
 
-            // Toggle category tags (Instant add, Confirmation on remove)
+            // Toggle category tags from row buttons (Instant add, Confirmation on remove)
+            const handleCategoryToggle = (catName, isCurrentlyActive) => {
+                const catLabel = categoryNameMap[catName] || catName;
+                if (isCurrentlyActive) {
+                    showConfirmModal({
+                        title: '⚠️ Xác nhận bỏ khỏi danh sách',
+                        message: `Bạn có thật sự muốn bỏ bài hát "${song.title}" khỏi danh sách ${catLabel} không?`,
+                        confirmText: 'Đồng ý bỏ',
+                        isDanger: true,
+                        onConfirm: () => {
+                            toggleSongCategory(song.id, catName);
+                            showToast(`Đã bỏ bài hát khỏi danh sách ${catLabel}`, 'info');
+                        }
+                    });
+                } else {
+                    toggleSongCategory(song.id, catName);
+                    showToast(`Đã thêm bài hát vào danh sách ${catLabel}`, 'success');
+                }
+            };
+
             songDiv.querySelectorAll('.cat-tag-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const catName = btn.dataset.cat;
                     const isCurrentlyActive = btn.classList.contains('active');
-                    const catLabel = categoryNameMap[catName] || catName;
-
-                    if (isCurrentlyActive) {
-                        // REMOVE FROM LIST: Prompt confirmation modal
-                        showConfirmModal({
-                            title: '⚠️ Xác nhận bỏ khỏi danh sách',
-                            message: `Bạn có thật sự muốn bỏ bài hát "${song.title}" khỏi danh sách ${catLabel} không?`,
-                            confirmText: 'Đồng ý bỏ',
-                            isDanger: true,
-                            onConfirm: () => {
-                                toggleSongCategory(song.id, catName);
-                                showToast(`Đã bỏ bài hát khỏi danh sách ${catLabel}`, 'info');
-                            }
-                        });
-                    } else {
-                        // ADD TO LIST: Add immediately without confirmation
-                        toggleSongCategory(song.id, catName);
-                        showToast(`Đã thêm bài hát vào danh sách ${catLabel}`, 'success');
-                    }
+                    handleCategoryToggle(catName, isCurrentlyActive);
                 });
             });
 
+            // Toggle category tags from 3-dots dropdown menu
+            const dropdownMenu = songDiv.querySelector('.song-dropdown-menu');
+            if (dropdownMenu) {
+                dropdownMenu.querySelectorAll('.dropdown-cat-item').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const catName = btn.dataset.cat;
+                        const isCurrentlyActive = btn.classList.contains('active');
+                        dropdownMenu.classList.add('hidden');
+                        handleCategoryToggle(catName, isCurrentlyActive);
+                    });
+                });
+            }
+
             // 3-Dots Action Menu & Song Deletion
             const moreBtn = songDiv.querySelector('.btn-song-more');
-            const dropdownMenu = songDiv.querySelector('.song-dropdown-menu');
             const deleteBtn = songDiv.querySelector('.btn-delete-song');
 
             if (moreBtn && dropdownMenu) {
@@ -1023,6 +1060,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // --- Mobile View Navigation Logic ---
+    function setMobileTab(tab) {
+        mobileTab = tab;
+        document.body.classList.remove('mobile-view-for-you', 'mobile-view-library');
+        document.body.classList.add('mobile-view-' + tab);
+
+        const mobileTabForYou = document.getElementById('mobile-tab-for-you');
+        const mobileTabLibrary = document.getElementById('mobile-tab-library');
+        if (mobileTabForYou) mobileTabForYou.classList.toggle('active', tab === 'for-you');
+        if (mobileTabLibrary) mobileTabLibrary.classList.toggle('active', tab === 'library');
+
+        updateMiniPlayerVisibility();
+    }
+
+    function updateMiniPlayerVisibility() {
+        const mobileMiniPlayer = document.getElementById('mobile-mini-player');
+        if (!mobileMiniPlayer) return;
+        if (mobileTab === 'library' && currentIndex >= 0 && currentPlaylist[currentIndex]) {
+            mobileMiniPlayer.classList.remove('hidden');
+        } else {
+            mobileMiniPlayer.classList.add('hidden');
+        }
+    }
+
+    function updateMiniPlayerUI() {
+        const miniPlayIcon = document.getElementById('mini-play-icon');
+        const miniPauseIcon = document.getElementById('mini-pause-icon');
+        const miniDisc = document.getElementById('mini-disc');
+        const miniTitle = document.getElementById('mini-title');
+        const miniArtist = document.getElementById('mini-artist');
+
+        if (currentIndex >= 0 && currentPlaylist[currentIndex]) {
+            const song = currentPlaylist[currentIndex];
+            if (miniTitle) miniTitle.textContent = song.title;
+            if (miniArtist) miniArtist.textContent = song.folder || 'LocalSound';
+        }
+
+        if (isPlaying) {
+            if (miniPlayIcon) miniPlayIcon.classList.add('hidden');
+            if (miniPauseIcon) miniPauseIcon.classList.remove('hidden');
+            if (miniDisc) miniDisc.classList.add('playing');
+        } else {
+            if (miniPlayIcon) miniPlayIcon.classList.remove('hidden');
+            if (miniPauseIcon) miniPauseIcon.classList.add('hidden');
+            if (miniDisc) miniDisc.classList.remove('playing');
+        }
+        updateMiniPlayerVisibility();
+    }
+
     // --- UI Update Helpers ---
     function updatePlayerUI() {
         if (isPlaying) {
@@ -1050,7 +1136,76 @@ document.addEventListener('DOMContentLoaded', () => {
             updateCurrentTrackTags();
         }
 
+        updateMiniPlayerUI();
+        updateHeartUI();
         renderSongList();
+    }
+
+    function updateHeartUI() {
+        const pmFavLabel = document.getElementById('pm-fav-label');
+        if (!pmFavLabel) return;
+
+        if (currentIndex >= 0 && currentPlaylist[currentIndex]) {
+            const song = currentPlaylist[currentIndex];
+            const cats = getSongCategories(song.id);
+            const isFav = cats.includes('trghy') || cats.includes('tghy');
+            if (isFav) {
+                pmFavLabel.textContent = '❤️ Đã lưu';
+                pmFavLabel.style.color = '#ef4444';
+            } else {
+                pmFavLabel.textContent = '♡ Chưa lưu';
+                pmFavLabel.style.color = 'var(--text-dim)';
+            }
+        } else {
+            pmFavLabel.textContent = '♡ Chưa lưu';
+            pmFavLabel.style.color = 'var(--text-dim)';
+        }
+    }
+
+    function openCategoryPickerModal() {
+        if (currentIndex < 0 || !currentPlaylist[currentIndex]) return;
+        const song = currentPlaylist[currentIndex];
+        const modal = document.getElementById('cat-picker-modal');
+        const songNameEl = document.getElementById('cat-picker-song-name');
+        const optionsEl = document.getElementById('cat-picker-options');
+        const closeBtn = document.getElementById('close-cat-picker');
+
+        if (!modal || !optionsEl) return;
+
+        if (songNameEl) songNameEl.textContent = `🎵 ${song.title}`;
+
+        const categories = [
+            { key: 'nhacdo', label: '🇻🇳 Nhạc Đỏ' },
+            { key: 'trghy', label: '👤 trghy' },
+            { key: 'cooking', label: '🍳 Nấu Ăn' },
+            { key: 'karaoke', label: '🎉 Karaoke' },
+            { key: 'sleep', label: '🐓 Đi Ngủ' }
+        ];
+
+        const songCats = getSongCategories(song.id);
+        optionsEl.innerHTML = '';
+
+        categories.forEach(cat => {
+            const isChecked = songCats.includes(cat.key) || (cat.key === 'trghy' && songCats.includes('tghy'));
+            const row = document.createElement('label');
+            row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); color: var(--text-main); cursor: pointer; font-size: 0.9rem;';
+
+            row.innerHTML = `
+                <span>${cat.label}</span>
+                <input type="checkbox" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary);">
+            `;
+
+            const chk = row.querySelector('input');
+            chk.addEventListener('change', () => {
+                toggleSongCategory(song.id, cat.key);
+                updateHeartUI();
+            });
+
+            optionsEl.appendChild(row);
+        });
+
+        if (closeBtn) closeBtn.onclick = () => modal.classList.remove('active');
+        modal.classList.add('active');
     }
 
     function updateCurrentTrackTags() {
@@ -1122,6 +1277,140 @@ document.addEventListener('DOMContentLoaded', () => {
         if (prevBtn) prevBtn.addEventListener('click', playPrevTrack);
         if (modeCycleBtn) modeCycleBtn.addEventListener('click', cycleLoopMode);
 
+        // Mobile Bottom Tab Listeners
+        const mobileTabForYou = document.getElementById('mobile-tab-for-you');
+        const mobileTabLibrary = document.getElementById('mobile-tab-library');
+        if (mobileTabForYou) mobileTabForYou.addEventListener('click', () => setMobileTab('for-you'));
+        if (mobileTabLibrary) mobileTabLibrary.addEventListener('click', () => setMobileTab('library'));
+
+        // Mobile Mini Player Handlers
+        const miniPlayerInfo = document.getElementById('mini-player-info');
+        const miniPlayBtn = document.getElementById('mini-play-btn');
+        if (miniPlayerInfo) miniPlayerInfo.addEventListener('click', () => setMobileTab('for-you'));
+        if (miniPlayBtn) miniPlayBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePlayPause(); });
+
+        // Heart Favorite Button Click & Long Press Handler
+        const btnHeartFav = document.getElementById('btn-heart-fav');
+        let heartPressTimer = null;
+        let isLongPress = false;
+
+        if (btnHeartFav) {
+            const startPress = (e) => {
+                isLongPress = false;
+                heartPressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    openCategoryPickerModal();
+                }, 500);
+            };
+
+            const cancelPress = () => {
+                if (heartPressTimer) clearTimeout(heartPressTimer);
+            };
+
+            const endPress = (e) => {
+                cancelPress();
+                if (!isLongPress && currentIndex >= 0 && currentPlaylist[currentIndex]) {
+                    const song = currentPlaylist[currentIndex];
+                    const cats = getSongCategories(song.id);
+                    const hasTrghy = cats.includes('trghy') || cats.includes('tghy');
+
+                    if (hasTrghy) {
+                        toggleSongCategory(song.id, 'trghy');
+                        showToast(`Đã bỏ bài "${song.title}" khỏi trghy`, 'info');
+                    } else {
+                        toggleSongCategory(song.id, 'trghy');
+                        showToast(`❤️ Đã thêm bài "${song.title}" vào trghy`, 'success');
+                    }
+                    updateHeartUI();
+                }
+            };
+
+            btnHeartFav.addEventListener('mousedown', startPress);
+            btnHeartFav.addEventListener('mouseup', endPress);
+            btnHeartFav.addEventListener('mouseleave', cancelPress);
+
+            btnHeartFav.addEventListener('touchstart', startPress, { passive: true });
+            btnHeartFav.addEventListener('touchend', (e) => {
+                endPress(e);
+                if (isLongPress && e.cancelable) e.preventDefault();
+            });
+        }
+
+        // 3-Dots Player Options Menu
+        const btnPlayerMore = document.getElementById('btn-player-more');
+        const playerMoreModal = document.getElementById('player-more-modal');
+        const closePlayerMore = document.getElementById('close-player-more');
+
+        const pmFavBtn = document.getElementById('pm-fav-btn');
+        const pmCatBtn = document.getElementById('pm-cat-btn');
+        const pmModeBtn = document.getElementById('pm-mode-btn');
+        const pmTimerBtn = document.getElementById('pm-timer-btn');
+        const pmEqBtn = document.getElementById('pm-eq-btn');
+        const pmModeLabel = document.getElementById('pm-mode-label');
+
+        if (btnPlayerMore && playerMoreModal) {
+            btnPlayerMore.addEventListener('click', () => {
+                if (pmModeLabel && modeLabel) pmModeLabel.textContent = modeLabel.textContent;
+                updateHeartUI();
+                playerMoreModal.classList.add('active');
+            });
+
+            if (closePlayerMore) closePlayerMore.onclick = () => playerMoreModal.classList.remove('active');
+
+            if (pmFavBtn) {
+                pmFavBtn.addEventListener('click', () => {
+                    if (currentIndex >= 0 && currentPlaylist[currentIndex]) {
+                        const song = currentPlaylist[currentIndex];
+                        const cats = getSongCategories(song.id);
+                        const hasTrghy = cats.includes('trghy') || cats.includes('tghy');
+                        if (hasTrghy) {
+                            toggleSongCategory(song.id, 'trghy');
+                            showToast(`Đã bỏ bài "${song.title}" khỏi trghy`, 'info');
+                        } else {
+                            toggleSongCategory(song.id, 'trghy');
+                            showToast(`❤️ Đã thêm bài "${song.title}" vào trghy`, 'success');
+                        }
+                        updateHeartUI();
+                    } else {
+                        showToast('Vui lòng chọn 1 bài hát để phát!', 'warning');
+                    }
+                });
+            }
+
+            if (pmCatBtn) {
+                pmCatBtn.addEventListener('click', () => {
+                    playerMoreModal.classList.remove('active');
+                    openCategoryPickerModal();
+                });
+            }
+
+            if (pmModeBtn) {
+                pmModeBtn.addEventListener('click', () => {
+                    cycleLoopMode();
+                    if (pmModeLabel && modeLabel) pmModeLabel.textContent = modeLabel.textContent;
+                });
+            }
+
+            if (pmTimerBtn) {
+                pmTimerBtn.addEventListener('click', () => {
+                    playerMoreModal.classList.remove('active');
+                    const timerModal = document.getElementById('timer-modal');
+                    if (timerModal) timerModal.classList.add('active');
+                });
+            }
+
+            if (pmEqBtn) {
+                pmEqBtn.addEventListener('click', () => {
+                    playerMoreModal.classList.remove('active');
+                    const eqModal = document.getElementById('eq-modal');
+                    if (eqModal) eqModal.classList.add('active');
+                });
+            }
+        }
+
+        // Default Mobile Tab View
+        setMobileTab('for-you');
+
         // Brand / Logo Home Button Click
         const brandHomeBtn = document.getElementById('brand-home-btn');
         if (brandHomeBtn) {
@@ -1146,12 +1435,131 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Search Autocomplete Real-time Input
+        // Search Autocomplete Real-time Input with Live Dropdown Overlay
+        function escapeRegex(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function renderSearchResultsDropdown() {
+            const dropdown = document.getElementById('search-results-dropdown');
+            if (!dropdown) return;
+
+            // Only run live search dropdown on Mobile view (width <= 768px)
+            if (window.innerWidth > 768) {
+                dropdown.classList.add('hidden');
+                dropdown.innerHTML = '';
+                return;
+            }
+
+            const q = searchQuery.trim();
+            if (q === '') {
+                dropdown.classList.add('hidden');
+                dropdown.innerHTML = '';
+                return;
+            }
+
+            const rawQ = q.toLowerCase();
+            const normQ = removeAccents(rawQ);
+
+            const matches = allSongs.filter(s => {
+                if (!s || !s.title) return false;
+                const titleLower = s.title.toLowerCase();
+                const titleNorm = removeAccents(s.title);
+                const folderNorm = removeAccents(s.folder || '');
+                return titleLower.includes(rawQ) || titleNorm.includes(normQ) || folderNorm.includes(normQ);
+            });
+
+            if (matches.length === 0) {
+                dropdown.innerHTML = `<div class="search-no-results">Không tìm thấy bài hát nào phù hợp với "${escapeHtml(q)}"</div>`;
+            } else {
+                dropdown.innerHTML = '';
+                matches.slice(0, 25).forEach(song => {
+                    const item = document.createElement('div');
+                    item.className = 'search-result-item';
+
+                    let displayTitle = escapeHtml(song.title);
+                    try {
+                        const regex = new RegExp(`(${escapeRegex(q)})`, 'gi');
+                        displayTitle = displayTitle.replace(regex, '<span class="highlight-text">$1</span>');
+                    } catch (err) {}
+
+                    item.innerHTML = `
+                        <span class="search-song-icon">🎵</span>
+                        <div class="search-song-info">
+                            <span class="search-song-title">${displayTitle}</span>
+                            <span class="search-song-folder">${escapeHtml(song.folder || 'Tất cả')}</span>
+                        </div>
+                    `;
+
+                    let touchStartY = 0;
+                    let touchStartX = 0;
+                    let isDragging = false;
+
+                    item.addEventListener('touchstart', (e) => {
+                        if (e.touches && e.touches[0]) {
+                            touchStartY = e.touches[0].clientY;
+                            touchStartX = e.touches[0].clientX;
+                            isDragging = false;
+                        }
+                    }, { passive: true });
+
+                    item.addEventListener('touchmove', (e) => {
+                        if (e.touches && e.touches[0]) {
+                            const moveY = Math.abs(e.touches[0].clientY - touchStartY);
+                            const moveX = Math.abs(e.touches[0].clientX - touchStartX);
+                            if (moveY > 8 || moveX > 8) {
+                                isDragging = true;
+                            }
+                        }
+                    }, { passive: true });
+
+                    const triggerPlay = (e) => {
+                        if (isDragging) return;
+
+                        currentPlaylist = [...allSongs];
+                        const targetIdx = currentPlaylist.findIndex(s => s && s.id === song.id);
+
+                        if (targetIdx !== -1) {
+                            playTrack(targetIdx);
+                            updatePlayerUI();
+                            updateMiniPlayerUI();
+                        }
+
+                        dropdown.classList.add('hidden');
+                        dropdown.innerHTML = '';
+                        if (searchInput) searchInput.blur();
+                        showToast(`🎵 Đang phát: ${song.title}`, 'success');
+                    };
+
+                    item.addEventListener('touchend', (e) => {
+                        if (!isDragging) {
+                            triggerPlay(e);
+                        }
+                    });
+
+                    item.addEventListener('click', (e) => {
+                        triggerPlay(e);
+                    });
+
+                    dropdown.appendChild(item);
+                });
+            }
+
+            dropdown.classList.remove('hidden');
+        }
+
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 searchQuery = e.target.value;
                 if (clearSearchBtn) clearSearchBtn.classList.toggle('hidden', searchQuery === '');
                 filterAndRenderSongs();
+                renderSearchResultsDropdown();
+            });
+
+            searchInput.addEventListener('focus', () => {
+                if (searchQuery.trim() !== '') {
+                    renderSearchResultsDropdown();
+                }
             });
         }
 
@@ -1161,8 +1569,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchQuery = '';
                 clearSearchBtn.classList.add('hidden');
                 filterAndRenderSongs();
+                renderSearchResultsDropdown();
             });
         }
+
+        document.addEventListener('pointerdown', (e) => {
+            const searchBox = document.querySelector('.search-box');
+            const dropdown = document.getElementById('search-results-dropdown');
+            if (dropdown && searchBox && !searchBox.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
 
         if (sortSelect) {
             sortSelect.addEventListener('change', (e) => {
