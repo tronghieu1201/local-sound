@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Music Player - Trình Nghe Nhạc Offline</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand" id="brand-home-btn" role="button" tabindex="0" title="Về trang chủ (Tất cả bài hát)">
+                <div class="logo-icon">
+                    <img src="/data/logo/logo.png" alt="LocalSound Logo" class="brand-logo-img">
+                </div>
+                <div class="brand-text">
+                    <h1>LocalSound</h1>
+                    <span class="badge">Offline Pro</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <button class="nav-item active" data-tab="all">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18V5l12-2v13"></path>
+                        <circle cx="6" cy="18" r="3"></circle>
+                        <circle cx="18" cy="16" r="3"></circle>
+                    </svg>
+                    <span>Tất Cả Bài Hát</span>
+                    <span class="count-badge" id="total-count">0</span>
+                </button>
+                <button class="nav-item" data-tab="nhacdo">
+                    <span class="icon-cat icon-nhacdo"></span>
+                    <span>Nhạc Đỏ</span>
+                    <span class="count-badge" id="nhacdo-count">0</span>
+                </button>
+                <button class="nav-item" data-tab="tghy">
+                    <span class="icon-cat icon-tghy"></span>
+                    <span>trghy</span>
+                    <span class="count-badge" id="tghy-count">0</span>
+                </button>
+                <button class="nav-item" data-tab="cooking">
+                    <span class="icon-cat icon-cooking"></span>
+                    <span>Nấu Ăn</span>
+                    <span class="count-badge" id="cooking-count">0</span>
+                </button>
+                <button class="nav-item" data-tab="karaoke">
+                    <span class="icon-cat icon-karaoke"></span>
+                    <span>Karaoke</span>
+                    <span class="count-badge" id="karaoke-count">0</span>
+                </button>
+                <button class="nav-item" data-tab="sleep">
+                    <span class="icon-cat icon-sleep"></span>
+                    <span>Đi Ngủ</span>
+                    <span class="count-badge" id="sleep-count">0</span>
+                </button>
+                <button class="nav-item" data-tab="note">
+                    <span class="icon-cat icon-note"></span>
+                    <span>Ghi Chú</span>
+                </button>
+                <button class="nav-item" data-tab="recent">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Vừa Nghe Gần Đây</span>
+                </button>
+            </nav>
+
+            <div class="sidebar-section">
+                <h3>Thư Mục Thật</h3>
+                <div class="folder-list" id="folder-list">
+                    <button class="folder-item active" data-folder="all">
+                        <span class="folder-dot"></span> Tất cả
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header Bar -->
+            <header class="top-header">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Gõ tên bài hát (A, An, Anh...)... (phím tắt '/')">
+                    <button id="clear-search" class="hidden">&times;</button>
+                </div>
+
+                <div class="header-actions">
+                    <button class="btn-icon" id="eq-toggle-btn" title="Bộ cân bằng âm thanh (Equalizer)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="4" y1="21" x2="4" y2="14"></line>
+                            <line x1="4" y1="10" x2="4" y2="3"></line>
+                            <line x1="12" y1="21" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12" y2="3"></line>
+                            <line x1="20" y1="21" x2="20" y2="16"></line>
+                            <line x1="20" y1="12" x2="20" y2="3"></line>
+                            <line x1="1" y1="14" x2="7" y2="14"></line>
+                            <line x1="9" y1="8" x2="15" y2="8"></line>
+                            <line x1="17" y1="16" x2="23" y2="16"></line>
+                        </svg>
+                    </button>
+                    <button class="btn-icon header-timer-btn" id="timer-toggle-btn" title="Hẹn giờ tắt nhạc">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        <span id="timer-badge-text" class="timer-badge-text hidden">15m</span>
+                    </button>
+                    <button class="btn-icon header-power-btn" id="power-saver-btn"
+                        title="Tiết kiệm pin & Giữ màn hình (Tắt)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="6" width="18" height="12" rx="2" ry="2"></rect>
+                            <line x1="23" y1="11" x2="23" y2="13"></line>
+                            <polyline points="11 7 8 12 12 12 9 17"></polyline>
+                        </svg>
+                        <span id="power-saver-badge" class="power-saver-badge">OFF</span>
+                    </button>
+                    <button class="btn-icon" id="shortcut-help-btn" title="Hướng dẫn phím tắt">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Center Stage Player -->
+            <section class="player-stage">
+                <div class="visualizer-container">
+                    <canvas id="visualizer-canvas"></canvas>
+                </div>
+
+                <div class="turntable-wrapper">
+                    <div class="vinyl-disc" id="vinyl-disc">
+                        <div class="vinyl-grooves"></div>
+                        <div class="vinyl-center">
+                            <img id="vinyl-img" src="/data/logo/cd.png" alt="Vinyl Logo" class="vinyl-img hidden"
+                                onerror="this.classList.add('hidden'); if(document.getElementById('vinyl-art')) document.getElementById('vinyl-art').classList.remove('hidden');"
+                                onload="this.classList.remove('hidden'); if(document.getElementById('vinyl-art')) document.getElementById('vinyl-art').classList.add('hidden');">
+                            <div class="vinyl-art" id="vinyl-art">🎵</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="track-info">
+                    <div class="track-header">
+                        <h2 id="current-title">Chọn một bài hát để bắt đầu</h2>
+                    </div>
+                    <div class="current-tags" id="current-tags"></div>
+                </div>
+
+                <!-- Player Controls -->
+                <div class="player-controls">
+                    <!-- Progress Bar -->
+                    <div class="progress-bar-container">
+                        <span id="current-time">00:00</span>
+                        <div class="slider-wrapper" id="progress-wrapper">
+                            <div class="seek-tooltip hidden" id="seek-tooltip">00:00</div>
+                            <input type="range" id="seek-slider" min="0" max="100" value="0" step="0.1">
+                            <div class="slider-fill" id="seek-fill">
+                                <div class="slider-thumb"></div>
+                            </div>
+                        </div>
+                        <span id="duration-time">00:00</span>
+                    </div>
+
+                    <!-- Main Buttons -->
+                    <div class="control-buttons">
+                        <!-- Consolidated Loop / Repeat / Shuffle Mode Button -->
+                        <button class="btn-mode-cycle" id="mode-cycle-btn" title="Chuyển chế độ lặp">
+                            <span id="mode-icon">🔁</span>
+                            <span id="mode-label">Theo thứ tự</span>
+                        </button>
+
+                        <div class="play-group">
+                            <button class="btn-ctrl" id="prev-btn" title="Bài trước đó (P)">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="19 20 9 12 19 4 19 20"></polygon>
+                                    <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line>
+                                </svg>
+                            </button>
+                            <button class="btn-play" id="play-btn" title="Phát / Tạm dừng (Space)">
+                                <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                </svg>
+                                <svg id="pause-icon" class="hidden" viewBox="0 0 24 24" fill="currentColor">
+                                    <rect x="6" y="4" width="4" height="16"></rect>
+                                    <rect x="14" y="4" width="4" height="16"></rect>
+                                </svg>
+                            </button>
+                            <button class="btn-ctrl" id="next-btn" title="Bài tiếp theo (N)">
+                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                    <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                                    <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Volume Control -->
+                    <div class="volume-container">
+                        <button class="btn-icon-small" id="mute-btn" title="Tắt tiếng (M)">
+                            <svg id="vol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                            </svg>
+                            <svg id="mute-icon" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                                <path d="M9 9l3 3m-3 3l3-3"></path>
+                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            </svg>
+                        </button>
+                        <div class="slider-wrapper volume-wrapper">
+                            <input type="range" id="volume-slider" min="0" max="1" value="0.8" step="0.01">
+                            <div class="slider-fill" id="volume-fill"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Song Playlist Panel -->
+            <section class="playlist-section">
+                <div class="playlist-header">
+                    <div class="playlist-title">
+                        <h2 id="current-playlist-heading">Tất Cả Bài Hát (A - Z)</h2>
+                        <span id="playlist-count">0 bài</span>
+                    </div>
+                    <div class="playlist-sort">
+                        <select id="sort-select">
+                            <option value="title-asc">Tên (A - Z)</option>
+                            <option value="title-desc">Tên (Z - A)</option>
+                            <option value="size-desc">Dung lượng giảm dần</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="song-list" id="song-list">
+                    <div class="loading-spinner">Đang tải danh sách bài hát local...</div>
+                </div>
+            </section>
+
+            <!-- Notes / Checklist Section -->
+            <section class="notes-section hidden" id="notes-section">
+                <div class="notes-header">
+                    <div class="notes-title-group">
+                        <h2><span class="icon-cat icon-note" style="width: 22px; height: 22px;"></span> Danh Sách Bài
+                            Hát Cần Tải</h2>
+                    </div>
+                    <span id="note-save-status" class="note-save-status">✓ Đã lưu tự động</span>
+                </div>
+
+                <div class="notes-body">
+                    <!-- Checklist Container -->
+                    <div class="notes-unified-container">
+                        <div class="notes-toolbar">
+                            <div class="notes-toolbar-left">
+                                <span class="notes-toolbar-title">Checklist</span>
+                                <span id="checklist-count" class="checklist-count-badge">0/0 hoàn thành</span>
+                            </div>
+                            <div class="notes-actions">
+                                <button class="btn-note-action" id="btn-copy-notes"
+                                    title="Sao chép danh sách bài hát">📋 Sao chép</button>
+                                <button class="btn-note-action danger" id="btn-clear-notes"
+                                    title="Xoá tất cả bài hát">🗑️ Xoá tất cả</button>
+                            </div>
+                        </div>
+
+                        <!-- Quick Add Input Bar -->
+                        <div class="checklist-input-group">
+                            <input type="text" id="checklist-input" placeholder="Nhập tên bài hát nhớ tạm cần tải...">
+                            <button id="btn-add-checklist" class="btn-add-checklist">+ Thêm bài hát</button>
+                        </div>
+
+                        <!-- Checklist Items Container -->
+                        <div class="checklist-items" id="checklist-items-container">
+                            <div class="loading-spinner" style="padding:16px; font-size:0.85rem;">Chưa có bài hát nào
+                                trong danh sách</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Equalizer Modal -->
+    <div class="modal" id="eq-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>🎛️ Bộ Cân Bằng Âm Thanh (Equalizer)</h3>
+                <button class="close-btn" id="close-eq">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="eq-presets">
+                    <label>Chế độ cài sẵn:</label>
+                    <button class="preset-btn active" data-preset="flat">Phẳng (Flat)</button>
+                    <button class="preset-btn" data-preset="bass">Tăng Bass</button>
+                    <button class="preset-btn" data-preset="pop">Pop</button>
+                    <button class="preset-btn" data-preset="rock">Rock</button>
+                    <button class="preset-btn" data-preset="vocal">Vocal</button>
+                </div>
+                <div class="eq-bands">
+                    <div class="band-control">
+                        <span>60Hz</span>
+                        <input type="range" class="eq-slider" data-band="0" min="-12" max="12" value="0" step="0.5">
+                        <span class="val">0dB</span>
+                    </div>
+                    <div class="band-control">
+                        <span>230Hz</span>
+                        <input type="range" class="eq-slider" data-band="1" min="-12" max="12" value="0" step="0.5">
+                        <span class="val">0dB</span>
+                    </div>
+                    <div class="band-control">
+                        <span>910Hz</span>
+                        <input type="range" class="eq-slider" data-band="2" min="-12" max="12" value="0" step="0.5">
+                        <span class="val">0dB</span>
+                    </div>
+                    <div class="band-control">
+                        <span>3.6kHz</span>
+                        <input type="range" class="eq-slider" data-band="3" min="-12" max="12" value="0" step="0.5">
+                        <span class="val">0dB</span>
+                    </div>
+                    <div class="band-control">
+                        <span>14kHz</span>
+                        <input type="range" class="eq-slider" data-band="4" min="-12" max="12" value="0" step="0.5">
+                        <span class="val">0dB</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sleep Timer Modal -->
+    <div class="modal" id="timer-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3>⏱️ Hẹn Giờ Tắt Nhạc</h3>
+                <button class="close-btn" id="close-timer">&times;</button>
+            </div>
+            <div class="modal-body text-center">
+                <p>Chọn mốc thời gian hoặc tự nhập số phút để tắt nhạc:</p>
+                <div class="timer-options">
+                    <button class="timer-btn" data-time="15">15 Phút</button>
+                    <button class="timer-btn" data-time="20">20 Phút</button>
+                    <button class="timer-btn" data-time="30">30 Phút</button>
+                    <button class="timer-btn" data-time="45">45 Phút</button>
+                    <button class="timer-btn" data-time="60">60 Phút</button>
+                </div>
+
+                <div class="custom-timer-section">
+                    <label for="custom-timer-input">Tự nhập thời gian (phút):</label>
+                    <div class="custom-timer-group">
+                        <input type="number" id="custom-timer-input" min="1" max="720" placeholder="VD: 25">
+                        <button id="custom-timer-submit" class="timer-submit-btn">Kích hoạt</button>
+                    </div>
+                </div>
+
+                <div class="timer-cancel-container">
+                    <button class="timer-btn danger" data-time="0">Tắt Hẹn Giờ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts Modal -->
+    <div class="modal" id="shortcut-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>⌨️ Phím Tắt Bàn Phím</h3>
+                <button class="close-btn" id="close-shortcut">&times;</button>
+            </div>
+            <div class="modal-body">
+                <ul class="shortcut-list">
+                    <li><kbd>Space</kbd> <span>Phát / Tạm dừng</span></li>
+                    <li><kbd>&larr;</kbd> / <kbd>&rarr;</kbd> <span>Tua lùi / tiến 5 giây</span></li>
+                    <li><kbd>&uarr;</kbd> / <kbd>&darr;</kbd> <span>Tăng / giảm 10% âm lượng</span></li>
+                    <li><kbd>N</kbd> <span>Chuyển sang bài tiếp theo</span></li>
+                    <li><kbd>P</kbd> <span>Quay lại bài trước đó</span></li>
+                    <li><kbd>M</kbd> <span>Bật / Tắt tiếng</span></li>
+                    <li><kbd>/</kbd> <span>Tập trung vào ô tìm kiếm</span></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Dialog Modal -->
+    <div class="modal" id="confirm-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3 id="confirm-modal-title">⚠️ Xác nhận</h3>
+                <button class="close-btn" id="close-confirm">&times;</button>
+            </div>
+            <div class="modal-body text-center">
+                <p id="confirm-modal-message"
+                    style="margin-bottom: 24px; line-height: 1.5; color: var(--text-main); font-size: 0.95rem; text-align: left;">
+                </p>
+                <div class="confirm-modal-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button id="confirm-modal-cancel" class="btn-secondary"
+                        style="padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(255,255,255,0.08); color: var(--text-main); cursor: pointer; font-weight: 500;">Hủy</button>
+                    <button id="confirm-modal-ok" class="btn-primary"
+                        style="padding: 10px 18px; border-radius: var(--radius-sm); border: none; background: var(--gradient-accent); color: #fff; cursor: pointer; font-weight: 600;">Xác
+                        nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ultra-Minimal OLED Power Saver Overlay -->
+    <div class="power-saver-overlay hidden" id="power-saver-overlay">
+        <div class="power-saver-content" onclick="event.stopPropagation()">
+            <div class="ps-battery-badge" id="ps-battery-level">🔋 85% • Tiết kiệm pin</div>
+
+            <div class="ps-track-name" id="ps-track-name">🎵 Chưa chọn bài hát</div>
+
+            <div class="ps-controls">
+                <button class="ps-btn" id="ps-prev-btn" title="Bài trước">⏮️</button>
+                <button class="ps-btn ps-play-btn" id="ps-play-btn" title="Phát/Tạm dừng">▶️</button>
+                <button class="ps-btn" id="ps-next-btn" title="Bài tiếp">⏭️</button>
+            </div>
+
+            <button class="btn-exit-power-saver" id="exit-power-saver-btn">
+                💡 Tắt tiết kiệm pin
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Hidden HTML5 Audio Element -->
+    <audio id="audio-player" preload="auto"></audio>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
