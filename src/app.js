@@ -745,6 +745,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <span class="icon-cat icon-sleep"></span> <span>Đi Ngủ</span> ${hasSleep ? '<span class="cat-check">✓</span>' : ''}
                         </button>
                         <div class="dropdown-divider"></div>
+                        <button class="dropdown-item btn-rename-song">✏️ Đổi tên bài hát</button>
                         <button class="dropdown-item danger btn-delete-song">🗑️ Xoá bài hát</button>
                     </div>
                 </div>
@@ -799,8 +800,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // 3-Dots Action Menu & Song Deletion
+            // 3-Dots Action Menu, Rename & Song Deletion
             const moreBtn = songDiv.querySelector('.btn-song-more');
+            const renameBtn = songDiv.querySelector('.btn-rename-song');
             const deleteBtn = songDiv.querySelector('.btn-delete-song');
 
             if (moreBtn && dropdownMenu) {
@@ -810,6 +812,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (menu !== dropdownMenu) menu.classList.add('hidden');
                     });
                     dropdownMenu.classList.toggle('hidden');
+                });
+            }
+
+            if (renameBtn) {
+                renameBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (dropdownMenu) dropdownMenu.classList.add('hidden');
+                    openRenameModal(song);
                 });
             }
 
@@ -868,6 +878,144 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
             console.error('Lỗi xoá bài hát:', err);
             showToast('Lỗi kết nối máy chủ khi xoá bài hát!', 'warning');
+        }
+    }
+
+    // --- Rename Song Dialog & API Handler ---
+    function openRenameModal(song) {
+        if (!song) return;
+
+        const renameModal = document.getElementById('rename-modal');
+        const filenameEl = document.getElementById('rename-current-filename');
+        const inputEl = document.getElementById('rename-input');
+        const cancelBtn = document.getElementById('rename-cancel-btn');
+        const submitBtn = document.getElementById('rename-submit-btn');
+        const closeBtn = document.getElementById('close-rename-modal');
+
+        if (!renameModal || !inputEl) return;
+
+        if (filenameEl) {
+            filenameEl.textContent = `Tệp: ${song.filename || song.id}`;
+        }
+        inputEl.value = song.title || '';
+        renameModal.classList.add('active');
+
+        setTimeout(() => {
+            inputEl.focus();
+            inputEl.select();
+        }, 80);
+
+        const closeRename = () => {
+            renameModal.classList.remove('active');
+            if (submitBtn) submitBtn.onclick = null;
+            if (cancelBtn) cancelBtn.onclick = null;
+            if (closeBtn) closeBtn.onclick = null;
+            inputEl.onkeydown = null;
+        };
+
+        const handleSubmit = () => {
+            const newTitle = inputEl.value.trim();
+            if (!newTitle) {
+                showToast('Tên bài hát không được để trống!', 'warning');
+                inputEl.focus();
+                return;
+            }
+            if (newTitle === song.title) {
+                closeRename();
+                return;
+            }
+            renameSong(song, newTitle, closeRename);
+        };
+
+        if (submitBtn) submitBtn.onclick = handleSubmit;
+        if (cancelBtn) cancelBtn.onclick = closeRename;
+        if (closeBtn) closeBtn.onclick = closeRename;
+
+        inputEl.onkeydown = (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                handleSubmit();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                closeRename();
+            }
+        };
+    }
+
+    async function renameSong(song, newTitle, onSuccessCallback) {
+        if (!song || !song.id || !newTitle) return;
+
+        try {
+            const res = await fetch('/api/rename-song', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: song.id, new_title: newTitle })
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (res.ok && data.status === 'ok') {
+                const oldId = data.old_id || song.id;
+                const newId = data.new_id || oldId;
+                const updatedSong = data.song || { ...song, title: newTitle, id: newId };
+
+                // Update in allSongs array
+                const songIdx = allSongs.findIndex(s => s && (s.id === oldId || s.id === song.id));
+                if (songIdx !== -1) {
+                    allSongs[songIdx] = updatedSong;
+                } else if (data.songs) {
+                    allSongs = data.songs;
+                }
+
+                // Update in currentPlaylist array
+                const plIdx = currentPlaylist.findIndex(s => s && (s.id === oldId || s.id === song.id));
+                if (plIdx !== -1) {
+                    currentPlaylist[plIdx] = updatedSong;
+                }
+
+                // Update categories in localStorage & memory if changed ID
+                if (oldId !== newId && songCategories[oldId]) {
+                    songCategories[newId] = songCategories[oldId];
+                    delete songCategories[oldId];
+                    try {
+                        localStorage.setItem('local_music_categories', JSON.stringify(songCategories));
+                    } catch (e) {}
+                }
+
+                // Update recent in localStorage & memory if changed ID
+                if (oldId !== newId && recentSongs.includes(oldId)) {
+                    recentSongs = recentSongs.map(r => r === oldId ? newId : r);
+                    try {
+                        localStorage.setItem('local_music_recent', JSON.stringify(recentSongs));
+                    } catch (e) {}
+                }
+
+                // Update current playing song references
+                if (currentPlayingSong && (currentPlayingSong.id === oldId || currentPlayingSong.id === song.id)) {
+                    currentPlayingSong.id = newId;
+                    currentPlayingSong.title = updatedSong.title;
+                    currentPlayingSong.filename = updatedSong.filename;
+                    currentPlayingSong.url = updatedSong.url;
+                }
+
+                if (currentIndex >= 0 && currentPlaylist[currentIndex]?.id === newId) {
+                    currentPlaylist[currentIndex] = updatedSong;
+                }
+
+                filterAndRenderSongs();
+                updatePlayerUI();
+
+                showToast(`Đã đổi tên bài hát thành "${updatedSong.title}"!`, 'success');
+
+                if (typeof onSuccessCallback === 'function') {
+                    onSuccessCallback();
+                }
+            } else {
+                showToast(data.message || 'Lỗi: Không thể đổi tên bài hát!', 'warning');
+            }
+        } catch (err) {
+            console.error('Lỗi đổi tên bài hát:', err);
+            showToast('Lỗi kết nối máy chủ khi đổi tên bài hát!', 'warning');
         }
     }
 
@@ -1580,6 +1728,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const playerMoreModal = document.getElementById('player-more-modal');
         const closePlayerMore = document.getElementById('close-player-more');
 
+        const pmRenameBtn = document.getElementById('pm-rename-btn');
         const pmFavBtn = document.getElementById('pm-fav-btn');
         const pmModeBtn = document.getElementById('pm-mode-btn');
         const pmTimerBtn = document.getElementById('pm-timer-btn');
@@ -1597,6 +1746,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (closePlayerMore) closePlayerMore.onclick = () => playerMoreModal.classList.remove('active');
 
+            if (pmRenameBtn) {
+                pmRenameBtn.addEventListener('click', () => {
+                    playerMoreModal.classList.remove('active');
+                    const song = getCurrentPlayingSong();
+                    if (song) {
+                        openRenameModal(song);
+                    } else {
+                        showToast('Chưa có bài hát nào đang được chọn!', 'warning');
+                    }
+                });
+            }
 
             if (pmModeBtn) {
                 pmModeBtn.addEventListener('click', () => {

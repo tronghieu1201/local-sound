@@ -325,6 +325,102 @@ class MusicPlayerHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(500)
                 self.end_headers()
             return
+        elif parsed.path == "/api/rename-song":
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length)
+            try:
+                data = json.loads(body.decode("utf-8"))
+                song_id = data.get("id")
+                new_title = data.get("new_title", "").strip()
+
+                if not song_id or not new_title:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"status": "error", "message": "Thiếu thông tin bài hát hoặc tên mới"}).encode("utf-8"))
+                    return
+
+                # Sanitize filename: remove illegal Windows characters < > : " / \ | ? *
+                sanitized_title = "".join(c for c in new_title if c not in '<>:"/\\|?*').strip()
+                if not sanitized_title:
+                    self.send_response(400)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"status": "error", "message": "Tên bài hát chứa ký tự không hợp lệ"}).encode("utf-8"))
+                    return
+
+                # Prevent directory traversal
+                file_path = (DATA_DIR / song_id).resolve()
+                if not str(file_path).startswith(str(DATA_DIR.resolve())):
+                    self.send_response(403)
+                    self.end_headers()
+                    return
+
+                if not file_path.exists() or not file_path.is_file():
+                    self.send_response(404)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"status": "error", "message": "Không tìm thấy file bài hát"}).encode("utf-8"))
+                    return
+
+                ext = file_path.suffix
+                new_filename = f"{sanitized_title}{ext}"
+                new_path = file_path.parent / new_filename
+
+                if new_path.exists() and new_path.resolve() != file_path.resolve():
+                    self.send_response(409)
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                    self.send_header("Access-Control-Allow-Origin", "*")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({"status": "error", "message": "File hoặc bài hát trùng tên đã tồn tại"}).encode("utf-8"))
+                    return
+
+                # Rename the file on disk if filename changed
+                if new_path.resolve() != file_path.resolve():
+                    file_path.rename(new_path)
+
+                new_rel_path = new_path.relative_to(DATA_DIR)
+                new_song_id = str(new_rel_path).replace("\\", "/")
+
+                # Update user_data.json
+                user_data = read_user_data()
+                modified = False
+                if "categories" in user_data and song_id in user_data["categories"]:
+                    user_data["categories"][new_song_id] = user_data["categories"].pop(song_id)
+                    modified = True
+                if "recent" in user_data and song_id in user_data["recent"]:
+                    user_data["recent"] = [new_song_id if r == song_id else r for r in user_data["recent"]]
+                    modified = True
+                if modified:
+                    save_user_data(user_data)
+
+                # Rescan songs database
+                all_songs = scan_songs()
+                new_metadata = get_song_metadata(new_path, new_rel_path)
+
+                res = json.dumps({
+                    "status": "ok",
+                    "song": new_metadata,
+                    "old_id": song_id,
+                    "new_id": new_song_id,
+                    "songs": all_songs
+                }, ensure_ascii=False).encode("utf-8")
+
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(res)
+            except Exception as e:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json; charset=utf-8")
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                self.wfile.write(json.dumps({"status": "error", "message": str(e)}).encode("utf-8"))
+            return
             
         self.send_error(404, "Not Found")
 

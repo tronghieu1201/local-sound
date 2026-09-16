@@ -14,6 +14,9 @@
 </head>
 
 <body class="mobile-view-for-you">
+    <!-- WebGL Neon Chasing Heart Background -->
+    <canvas id="bg-canvas" class="background-canvas"></canvas>
+
     <div class="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
@@ -423,6 +426,33 @@
         </div>
     </div>
 
+    <!-- Rename Song Modal -->
+    <div class="modal" id="rename-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3>✏️ Đổi Tên Bài Hát</h3>
+                <button class="close-btn" id="close-rename-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="rename-current-filename"
+                    style="margin-bottom: 12px; font-size: 0.82rem; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                </p>
+                <div style="margin-bottom: 20px;">
+                    <label for="rename-input" style="display: block; font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin-bottom: 8px;">Tên bài hát mới:</label>
+                    <input type="text" id="rename-input" autocomplete="off"
+                        style="width: 100%; padding: 10px 14px; background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-glass); border-radius: var(--radius-sm); color: var(--text-main); font-size: 0.95rem; outline: none; transition: var(--transition);"
+                        placeholder="Nhập tên bài hát mới...">
+                </div>
+                <div class="confirm-modal-actions" style="display: flex; gap: 10px; justify-content: flex-end;">
+                    <button id="rename-cancel-btn" class="btn-secondary"
+                        style="padding: 10px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-glass); background: rgba(255,255,255,0.08); color: var(--text-main); cursor: pointer; font-weight: 500;">Hủy</button>
+                    <button id="rename-submit-btn" class="btn-primary"
+                        style="padding: 10px 20px; border-radius: var(--radius-sm); border: none; background: var(--gradient-accent); color: #fff; cursor: pointer; font-weight: 600;">Lưu tên mới</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Player 3-Dots Mobile Menu Modal -->
     <div class="modal" id="player-more-modal">
         <div class="modal-content small">
@@ -431,6 +461,9 @@
                 <button class="close-btn" id="close-player-more">&times;</button>
             </div>
             <div class="modal-body" style="display: flex; flex-direction: column; gap: 10px;">
+                <button class="menu-option-btn" id="pm-rename-btn">
+                    <span>✏️ Đổi tên bài hát</span>
+                </button>
                 <button class="menu-option-btn" id="pm-fav-btn">
                     <span id="pm-fav-title">Danh sách:</span> <strong id="pm-fav-label">Chưa lưu</strong>
                 </button>
@@ -534,6 +567,7 @@
     <!-- Hidden HTML5 Audio Element -->
     <audio id="audio-player" preload="auto"></audio>
 
+    <script src="background.js"></script>
     <script src="app.js"></script>
 </body>
 
