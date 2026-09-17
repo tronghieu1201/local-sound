@@ -1128,8 +1128,23 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             localStorage.setItem('local_music_mobile_tab', tab);
         } catch (e) { }
+
+        // Reset scroll position before and after class change to prevent sticky/fixed elements from being pushed off-screen
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+
         document.body.classList.remove('mobile-view-for-you', 'mobile-view-library');
         document.body.classList.add('mobile-view-' + tab);
+
+        // Ensure scroll reset is applied after class switch across all containers
+        window.scrollTo(0, 0);
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+        const appContainer = document.querySelector('.app-container');
+        if (appContainer) appContainer.scrollTop = 0;
+        const mainContent = document.querySelector('.main-content');
+        if (mainContent) mainContent.scrollTop = 0;
 
         const mobileTabForYou = document.getElementById('mobile-tab-for-you');
         const mobileTabLibrary = document.getElementById('mobile-tab-library');

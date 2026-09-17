@@ -2084,12 +2084,35 @@ kbd {
        -------------------------------------------------------------------------- */
     body.mobile-view-for-you {
         height: 100vh;
-        overflow: hidden;
+        height: 100dvh;
+        overflow: hidden !important;
         padding-bottom: 64px;
+        box-sizing: border-box;
+    }
+
+    body.mobile-view-for-you .app-container {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: unset !important;
+        overflow: hidden !important;
+        width: 100vw !important;
     }
 
     body.mobile-view-for-you .sidebar {
         display: none !important;
+    }
+
+    body.mobile-view-for-you .main-content {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        width: 100% !important;
+        flex: 1 !important;
     }
 
     /* Show Top Header with Search Box on "Dành Cho Bạn" Tab */
@@ -2103,6 +2126,7 @@ kbd {
         backdrop-filter: blur(20px);
         border-bottom: 1px solid var(--border-glass);
         height: auto;
+        flex-shrink: 0 !important;
     }
 
     body.mobile-view-for-you .search-box {
@@ -2153,13 +2177,15 @@ kbd {
         flex-direction: column;
         align-items: center;
         justify-content: space-evenly;
-        height: calc(100vh - 120px);
-        min-height: unset;
+        flex: 1 !important;
+        height: auto !important;
+        min-height: 0 !important;
         padding: 8px 16px 16px;
         border-bottom: none;
         background: radial-gradient(circle at 50% 25%, rgba(0, 217, 245, 0.12) 0%, rgba(9, 11, 16, 0.75) 75%);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
+        overflow: hidden;
     }
 
     body.mobile-view-for-you .turntable-wrapper {
