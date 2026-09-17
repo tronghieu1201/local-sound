@@ -1402,15 +1402,8 @@ body.power-saver-active {
     transition: opacity 0.25s ease;
 }
 
-#confirm-modal,
-#rename-modal {
+#confirm-modal {
     z-index: 10500;
-}
-
-#rename-input:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 15px var(--primary-glow);
-    background: rgba(0, 0, 0, 0.6) !important;
 }
 
 .modal.active {

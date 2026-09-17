@@ -1,18 +1,26 @@
 [
   {
-    "id": "3 1 0 7 (feat. Duongg & Nâu).mp3",
-    "filename": "3 1 0 7 (feat. Duongg & Nâu).mp3",
-    "title": "3 1 0 7 (feat. Duongg & Nâu)",
-    "url": "data/3%201%200%207%20%28feat.%20Duongg%20%26%20N%C3%A2u%29.mp3",
+    "id": "3107.mp3",
+    "filename": "3107.mp3",
+    "title": "3107",
+    "url": "data/3107.mp3",
     "size": 4001933,
     "folder": "Tất cả"
   },
   {
-    "id": "Ai Là Người Thương Em_.mp3",
-    "filename": "Ai Là Người Thương Em_.mp3",
-    "title": "Ai Là Người Thương Em_",
-    "url": "data/Ai%20L%C3%A0%20Ng%C6%B0%E1%BB%9Di%20Th%C6%B0%C6%A1ng%20Em_.mp3",
+    "id": "Ai Là Người Thương Em.mp3",
+    "filename": "Ai Là Người Thương Em.mp3",
+    "title": "Ai Là Người Thương Em",
+    "url": "data/Ai%20L%C3%A0%20Ng%C6%B0%E1%BB%9Di%20Th%C6%B0%C6%A1ng%20Em.mp3",
     "size": 5156398,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "An Thần.mp3",
+    "filename": "An Thần.mp3",
+    "title": "An Thần",
+    "url": "data/An%20Th%E1%BA%A7n.mp3",
+    "size": 3445376,
     "folder": "Tất cả"
   },
   {
@@ -32,11 +40,43 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Anh Nhớ Em Người Yêu Cũ.mp3",
+    "filename": "Anh Nhớ Em Người Yêu Cũ.mp3",
+    "title": "Anh Nhớ Em Người Yêu Cũ",
+    "url": "data/Anh%20Nh%E1%BB%9B%20Em%20Ng%C6%B0%E1%BB%9Di%20Y%C3%AAu%20C%C5%A9.mp3",
+    "size": 4463760,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Anh Sẽ Là Người Ra Đi.mp3",
+    "filename": "Anh Sẽ Là Người Ra Đi.mp3",
+    "title": "Anh Sẽ Là Người Ra Đi",
+    "url": "data/Anh%20S%E1%BA%BD%20L%C3%A0%20Ng%C6%B0%E1%BB%9Di%20Ra%20%C4%90i.mp3",
+    "size": 3975292,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Anh Thanh Niên.mp3",
     "filename": "Anh Thanh Niên.mp3",
     "title": "Anh Thanh Niên",
     "url": "data/Anh%20Thanh%20Ni%C3%AAn.mp3",
     "size": 3789827,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Anh Thua Anh Ta.mp3",
+    "filename": "Anh Thua Anh Ta.mp3",
+    "title": "Anh Thua Anh Ta",
+    "url": "data/Anh%20Thua%20Anh%20Ta.mp3",
+    "size": 3727676,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Anh Đau Từ Lúc Em Đi.mp3",
+    "filename": "Anh Đau Từ Lúc Em Đi.mp3",
+    "title": "Anh Đau Từ Lúc Em Đi",
+    "url": "data/Anh%20%C4%90au%20T%E1%BB%AB%20L%C3%BAc%20Em%20%C4%90i.mp3",
+    "size": 5980627,
     "folder": "Tất cả"
   },
   {
@@ -64,10 +104,10 @@
     "folder": "Tất cả"
   },
   {
-    "id": "Buồn Hay Vui (Feat. Rpt Mck, Obito, Ronboogz & Boyzed).mp3",
-    "filename": "Buồn Hay Vui (Feat. Rpt Mck, Obito, Ronboogz & Boyzed).mp3",
-    "title": "Buồn Hay Vui (Feat. Rpt Mck, Obito, Ronboogz & Boyzed)",
-    "url": "data/Bu%E1%BB%93n%20Hay%20Vui%20%28Feat.%20Rpt%20Mck%2C%20Obito%2C%20Ronboogz%20%26%20Boyzed%29.mp3",
+    "id": "Buồn Hay Vui.mp3",
+    "filename": "Buồn Hay Vui.mp3",
+    "title": "Buồn Hay Vui",
+    "url": "data/Bu%E1%BB%93n%20Hay%20Vui.mp3",
     "size": 4911121,
     "folder": "Tất cả"
   },
@@ -80,10 +120,10 @@
     "folder": "Tất cả"
   },
   {
-    "id": "BƯỚC QUA ĐỜI NHAU.mp3",
-    "filename": "BƯỚC QUA ĐỜI NHAU.mp3",
-    "title": "BƯỚC QUA ĐỜI NHAU",
-    "url": "data/B%C6%AF%E1%BB%9AC%20QUA%20%C4%90%E1%BB%9CI%20NHAU.mp3",
+    "id": "Bước Qua Đời Nhau.mp3",
+    "filename": "Bước Qua Đời Nhau.mp3",
+    "title": "Bước Qua Đời Nhau",
+    "url": "data/B%C6%B0%E1%BB%9Bc%20Qua%20%C4%90%E1%BB%9Di%20Nhau.mp3",
     "size": 4874183,
     "folder": "Tất cả"
   },
@@ -96,26 +136,50 @@
     "folder": "Tất cả"
   },
   {
-    "id": "Ngày Hạnh Phúc - Bằng Cường ft DJ Oxy [Official MV].mp3",
-    "filename": "Ngày Hạnh Phúc - Bằng Cường ft DJ Oxy [Official MV].mp3",
-    "title": "Bằng Cường ft DJ Oxy [Official MV]",
-    "url": "data/Ng%C3%A0y%20H%E1%BA%A1nh%20Ph%C3%BAc%20-%20B%E1%BA%B1ng%20C%C6%B0%E1%BB%9Dng%20ft%20DJ%20Oxy%20%5BOfficial%20MV%5D.mp3",
-    "size": 5477876,
+    "id": "Bạn Đời.mp3",
+    "filename": "Bạn Đời.mp3",
+    "title": "Bạn Đời",
+    "url": "data/B%E1%BA%A1n%20%C4%90%E1%BB%9Di.mp3",
+    "size": 5088897,
     "folder": "Tất cả"
   },
   {
-    "id": "Hãy Xem Là Giấc Mơ - Chu Bin ( MV OFFICIAL ).mp3",
-    "filename": "Hãy Xem Là Giấc Mơ - Chu Bin ( MV OFFICIAL ).mp3",
-    "title": "Chu Bin ( MV OFFICIAL )",
-    "url": "data/H%C3%A3y%20Xem%20L%C3%A0%20Gi%E1%BA%A5c%20M%C6%A1%20-%20Chu%20Bin%20%28%20MV%20OFFICIAL%20%29.mp3",
-    "size": 6819977,
+    "id": "Bởi Vì Anh Yêu Em.mp3",
+    "filename": "Bởi Vì Anh Yêu Em.mp3",
+    "title": "Bởi Vì Anh Yêu Em",
+    "url": "data/B%E1%BB%9Fi%20V%C3%AC%20Anh%20Y%C3%AAu%20Em.mp3",
+    "size": 2666558,
     "folder": "Tất cả"
   },
   {
-    "id": "Chắc Ai Đó Sẽ Về .mp3",
-    "filename": "Chắc Ai Đó Sẽ Về .mp3",
-    "title": "Chắc Ai Đó Sẽ Về ",
-    "url": "data/Ch%E1%BA%AFc%20Ai%20%C4%90%C3%B3%20S%E1%BA%BD%20V%E1%BB%81%20.mp3",
+    "id": "Chiếc Khăn Gió Ấm.mp3",
+    "filename": "Chiếc Khăn Gió Ấm.mp3",
+    "title": "Chiếc Khăn Gió Ấm",
+    "url": "data/Chi%E1%BA%BFc%20Kh%C4%83n%20Gi%C3%B3%20%E1%BA%A4m.mp3",
+    "size": 4300885,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Chúng Ta Chưa Vì Nhau.mp3",
+    "filename": "Chúng Ta Chưa Vì Nhau.mp3",
+    "title": "Chúng Ta Chưa Vì Nhau",
+    "url": "data/Ch%C3%BAng%20Ta%20Ch%C6%B0a%20V%C3%AC%20Nhau.mp3",
+    "size": 4846999,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Chúng Ta Không Thuộc Về Nhau.mp3",
+    "filename": "Chúng Ta Không Thuộc Về Nhau.mp3",
+    "title": "Chúng Ta Không Thuộc Về Nhau",
+    "url": "data/Ch%C3%BAng%20Ta%20Kh%C3%B4ng%20Thu%E1%BB%99c%20V%E1%BB%81%20Nhau.mp3",
+    "size": 3880103,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Chắc Ai Đó Sẽ Về.mp3",
+    "filename": "Chắc Ai Đó Sẽ Về.mp3",
+    "title": "Chắc Ai Đó Sẽ Về",
+    "url": "data/Ch%E1%BA%AFc%20Ai%20%C4%90%C3%B3%20S%E1%BA%BD%20V%E1%BB%81.mp3",
     "size": 4251069,
     "folder": "Tất cả"
   },
@@ -128,11 +192,35 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Chỉ Còn Những Mùa Nhớ.mp3",
+    "filename": "Chỉ Còn Những Mùa Nhớ.mp3",
+    "title": "Chỉ Còn Những Mùa Nhớ",
+    "url": "data/Ch%E1%BB%89%20C%C3%B2n%20Nh%E1%BB%AFng%20M%C3%B9a%20Nh%E1%BB%9B.mp3",
+    "size": 4678465,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Chịu Cách Minh Nói Thua.mp3",
+    "filename": "Chịu Cách Minh Nói Thua.mp3",
+    "title": "Chịu Cách Minh Nói Thua",
+    "url": "data/Ch%E1%BB%8Bu%20C%C3%A1ch%20Minh%20N%C3%B3i%20Thua.mp3",
+    "size": 3076387,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Chờ Bao Lâu.mp3",
     "filename": "Chờ Bao Lâu.mp3",
     "title": "Chờ Bao Lâu",
     "url": "data/Ch%E1%BB%9D%20Bao%20L%C3%A2u.mp3",
     "size": 3354468,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Chờ Em Trong Đêm.mp3",
+    "filename": "Chờ Em Trong Đêm.mp3",
+    "title": "Chờ Em Trong Đêm",
+    "url": "data/Ch%E1%BB%9D%20Em%20Trong%20%C4%90%C3%AAm.mp3",
+    "size": 3100207,
     "folder": "Tất cả"
   },
   {
@@ -168,6 +256,22 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Câu Vòng Sau Mưa.mp3",
+    "filename": "Câu Vòng Sau Mưa.mp3",
+    "title": "Câu Vòng Sau Mưa",
+    "url": "data/C%C3%A2u%20V%C3%B2ng%20Sau%20M%C6%B0a.mp3",
+    "size": 4873623,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Có Khi Nào Rời Xa.mp3",
+    "filename": "Có Khi Nào Rời Xa.mp3",
+    "title": "Có Khi Nào Rời Xa",
+    "url": "data/C%C3%B3%20Khi%20N%C3%A0o%20R%E1%BB%9Di%20Xa.mp3",
+    "size": 4177350,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Có Mình Và Ta.mp3",
     "filename": "Có Mình Và Ta.mp3",
     "title": "Có Mình Và Ta",
@@ -192,11 +296,27 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Cô Thắm Không Về.mp3",
+    "filename": "Cô Thắm Không Về.mp3",
+    "title": "Cô Thắm Không Về",
+    "url": "data/C%C3%B4%20Th%E1%BA%AFm%20Kh%C3%B4ng%20V%E1%BB%81.mp3",
+    "size": 4508249,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Cảm Ơn Tổn Thương.mp3",
     "filename": "Cảm Ơn Tổn Thương.mp3",
     "title": "Cảm Ơn Tổn Thương",
     "url": "data/C%E1%BA%A3m%20%C6%A0n%20T%E1%BB%95n%20Th%C6%B0%C6%A1ng.mp3",
     "size": 5459734,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Cảm Ơn Vì Tất Cả.mp3",
+    "filename": "Cảm Ơn Vì Tất Cả.mp3",
+    "title": "Cảm Ơn Vì Tất Cả",
+    "url": "data/C%E1%BA%A3m%20%C6%A0n%20V%C3%AC%20T%E1%BA%A5t%20C%E1%BA%A3.mp3",
+    "size": 4248336,
     "folder": "Tất cả"
   },
   {
@@ -208,27 +328,59 @@
     "folder": "Tất cả"
   },
   {
-    "id": "DANHKA _ TÌNH KA _ OFFICIAL MUSIC VIDEO.mp3",
-    "filename": "DANHKA _ TÌNH KA _ OFFICIAL MUSIC VIDEO.mp3",
-    "title": "DANHKA",
-    "url": "data/DANHKA%20_%20T%C3%8CNH%20KA%20_%20OFFICIAL%20MUSIC%20VIDEO.mp3",
-    "size": 6600076,
+    "id": "Don't Côi.mp3",
+    "filename": "Don't Côi.mp3",
+    "title": "Don't Côi",
+    "url": "data/Don%27t%20C%C3%B4i.mp3",
+    "size": 2349055,
     "folder": "Tất cả"
   },
   {
-    "id": "DỪNG THƯƠNG _ DATKAA _ OFFICIAL MUSIC VIDEO.mp3",
-    "filename": "DỪNG THƯƠNG _ DATKAA _ OFFICIAL MUSIC VIDEO.mp3",
-    "title": "DỪNG THƯƠNG",
-    "url": "data/D%E1%BB%AANG%20TH%C6%AF%C6%A0NG%20_%20DATKAA%20_%20OFFICIAL%20MUSIC%20VIDEO.mp3",
+    "id": "Dù Cho Tận Thế.mp3",
+    "filename": "Dù Cho Tận Thế.mp3",
+    "title": "Dù Cho Tận Thế",
+    "url": "data/D%C3%B9%20Cho%20T%E1%BA%ADn%20Th%E1%BA%BF.mp3",
+    "size": 4813596,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Dừng Lại Đây Thôi.mp3",
+    "filename": "Dừng Lại Đây Thôi.mp3",
+    "title": "Dừng Lại Đây Thôi",
+    "url": "data/D%E1%BB%ABng%20L%E1%BA%A1i%20%C4%90%C3%A2y%20Th%C3%B4i.mp3",
+    "size": 5130708,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Dừng Thương.mp3",
+    "filename": "Dừng Thương.mp3",
+    "title": "Dừng Thương",
+    "url": "data/D%E1%BB%ABng%20Th%C6%B0%C6%A1ng.mp3",
     "size": 4022440,
     "folder": "Tất cả"
   },
   {
-    "id": "Long Cao - EM CỦA ANH ĐỪNG CỦA AI (Audio).mp3",
-    "filename": "Long Cao - EM CỦA ANH ĐỪNG CỦA AI (Audio).mp3",
-    "title": "EM CỦA ANH ĐỪNG CỦA AI (Audio)",
-    "url": "data/Long%20Cao%20-%20EM%20C%E1%BB%A6A%20ANH%20%C4%90%E1%BB%AANG%20C%E1%BB%A6A%20AI%20%28Audio%29.mp3",
+    "id": "E Là Không Thể.mp3",
+    "filename": "E Là Không Thể.mp3",
+    "title": "E Là Không Thể",
+    "url": "data/E%20L%C3%A0%20Kh%C3%B4ng%20Th%E1%BB%83.mp3",
+    "size": 4216532,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Em Của Anh Đừng Của Ai.mp3",
+    "filename": "Em Của Anh Đừng Của Ai.mp3",
+    "title": "Em Của Anh Đừng Của Ai",
+    "url": "data/Em%20C%E1%BB%A7a%20Anh%20%C4%90%E1%BB%ABng%20C%E1%BB%A7a%20Ai.mp3",
     "size": 3866466,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Em Gái Miền Tây.mp3",
+    "filename": "Em Gái Miền Tây.mp3",
+    "title": "Em Gái Miền Tây",
+    "url": "data/Em%20G%C3%A1i%20Mi%E1%BB%81n%20T%C3%A2y.mp3",
+    "size": 4056124,
     "folder": "Tất cả"
   },
   {
@@ -256,27 +408,19 @@
     "folder": "Tất cả"
   },
   {
-    "id": "Năm Tháng Ấy - GreenD ( Prod Cowvy) _ Official Music Video.mp3",
-    "filename": "Năm Tháng Ấy - GreenD ( Prod Cowvy) _ Official Music Video.mp3",
-    "title": "GreenD ( Prod Cowvy) _ Official Music Video",
-    "url": "data/N%C4%83m%20Th%C3%A1ng%20%E1%BA%A4y%20-%20GreenD%20%28%20Prod%20Cowvy%29%20_%20Official%20Music%20Video.mp3",
-    "size": 3139795,
-    "folder": "Tất cả"
-  },
-  {
-    "id": "Gặp Em Đúng Lúc _ 刚好遇见你.mp3",
-    "filename": "Gặp Em Đúng Lúc _ 刚好遇见你.mp3",
+    "id": "Gặp Em Đúng Lúc.mp3",
+    "filename": "Gặp Em Đúng Lúc.mp3",
     "title": "Gặp Em Đúng Lúc",
-    "url": "data/G%E1%BA%B7p%20Em%20%C4%90%C3%BAng%20L%C3%BAc%20_%20%E5%88%9A%E5%A5%BD%E9%81%87%E8%A7%81%E4%BD%A0.mp3",
+    "url": "data/G%E1%BA%B7p%20Em%20%C4%90%C3%BAng%20L%C3%BAc.mp3",
     "size": 3043844,
     "folder": "Tất cả"
   },
   {
-    "id": "Dừng Lại Đây Thôi - Hoa Vinh _ Official Music Video _ #DLDT.mp3",
-    "filename": "Dừng Lại Đây Thôi - Hoa Vinh _ Official Music Video _ #DLDT.mp3",
-    "title": "Hoa Vinh _ Official Music Video _ #DLDT",
-    "url": "data/D%E1%BB%ABng%20L%E1%BA%A1i%20%C4%90%C3%A2y%20Th%C3%B4i%20-%20Hoa%20Vinh%20_%20Official%20Music%20Video%20_%20%23DLDT.mp3",
-    "size": 5130708,
+    "id": "Hoa Nở Không Màu.mp3",
+    "filename": "Hoa Nở Không Màu.mp3",
+    "title": "Hoa Nở Không Màu",
+    "url": "data/Hoa%20N%E1%BB%9F%20Kh%C3%B4ng%20M%C3%A0u.mp3",
+    "size": 5454850,
     "folder": "Tất cả"
   },
   {
@@ -288,6 +432,22 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Hãy Xem Là Giấc Mơ.mp3",
+    "filename": "Hãy Xem Là Giấc Mơ.mp3",
+    "title": "Hãy Xem Là Giấc Mơ",
+    "url": "data/H%C3%A3y%20Xem%20L%C3%A0%20Gi%E1%BA%A5c%20M%C6%A1.mp3",
+    "size": 6819977,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Hôm Qua Tôi Đã Khóc.mp3",
+    "filename": "Hôm Qua Tôi Đã Khóc.mp3",
+    "title": "Hôm Qua Tôi Đã Khóc",
+    "url": "data/H%C3%B4m%20Qua%20T%C3%B4i%20%C4%90%C3%A3%20Kh%C3%B3c.mp3",
+    "size": 3696521,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Hạ Còn Vương Nắng.mp3",
     "filename": "Hạ Còn Vương Nắng.mp3",
     "title": "Hạ Còn Vương Nắng",
@@ -296,19 +456,27 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Hạnh Phúc Cuối Cùng.mp3",
+    "filename": "Hạnh Phúc Cuối Cùng.mp3",
+    "title": "Hạnh Phúc Cuối Cùng",
+    "url": "data/H%E1%BA%A1nh%20Ph%C3%BAc%20Cu%E1%BB%91i%20C%C3%B9ng.mp3",
+    "size": 5219200,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Hạt Mưa Vương Vấn.mp3",
+    "filename": "Hạt Mưa Vương Vấn.mp3",
+    "title": "Hạt Mưa Vương Vấn",
+    "url": "data/H%E1%BA%A1t%20M%C6%B0a%20V%C6%B0%C6%A1ng%20V%E1%BA%A5n.mp3",
+    "size": 4024485,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Hẹn Gặp Em Dưới Ánh Trăng.mp3",
     "filename": "Hẹn Gặp Em Dưới Ánh Trăng.mp3",
     "title": "Hẹn Gặp Em Dưới Ánh Trăng",
     "url": "data/H%E1%BA%B9n%20G%E1%BA%B7p%20Em%20D%C6%B0%E1%BB%9Bi%20%C3%81nh%20Tr%C4%83ng.mp3",
     "size": 3586645,
-    "folder": "Tất cả"
-  },
-  {
-    "id": "[OFFICIAL MV] VỀ BÊN ANH - Jack (G5R).mp3",
-    "filename": "[OFFICIAL MV] VỀ BÊN ANH - Jack (G5R).mp3",
-    "title": "Jack (G5R)",
-    "url": "data/%5BOFFICIAL%20MV%5D%20V%E1%BB%80%20B%C3%8AN%20ANH%20-%20Jack%20%28G5R%29.mp3",
-    "size": 3917925,
     "folder": "Tất cả"
   },
   {
@@ -328,6 +496,14 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Khúc Hát Mừng Sinh Nhật.mp3",
+    "filename": "Khúc Hát Mừng Sinh Nhật.mp3",
+    "title": "Khúc Hát Mừng Sinh Nhật",
+    "url": "data/Kh%C3%BAc%20H%C3%A1t%20M%E1%BB%ABng%20Sinh%20Nh%E1%BA%ADt.mp3",
+    "size": 3354390,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Kết Thúc Không Vui.mp3",
     "filename": "Kết Thúc Không Vui.mp3",
     "title": "Kết Thúc Không Vui",
@@ -344,11 +520,35 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Làm Vợ Anh Nhé .mp3",
+    "filename": "Làm Vợ Anh Nhé .mp3",
+    "title": "Làm Vợ Anh Nhé",
+    "url": "data/L%C3%A0m%20V%E1%BB%A3%20Anh%20Nh%C3%A9%20.mp3",
+    "size": 4112781,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Lời Yêu Ngây Dại.mp3",
     "filename": "Lời Yêu Ngây Dại.mp3",
     "title": "Lời Yêu Ngây Dại",
     "url": "data/L%E1%BB%9Di%20Y%C3%AAu%20Ng%C3%A2y%20D%E1%BA%A1i.mp3",
     "size": 4720320,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Mình Cưới Nhau Đi.mp3",
+    "filename": "Mình Cưới Nhau Đi.mp3",
+    "title": "Mình Cưới Nhau Đi",
+    "url": "data/M%C3%ACnh%20C%C6%B0%E1%BB%9Bi%20Nhau%20%C4%90i.mp3",
+    "size": 3881615,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Mối Tình Chiều Mưa Bay.mp3",
+    "filename": "Mối Tình Chiều Mưa Bay.mp3",
+    "title": "Mối Tình Chiều Mưa Bay",
+    "url": "data/M%E1%BB%91i%20T%C3%ACnh%20Chi%E1%BB%81u%20M%C6%B0a%20Bay.mp3",
+    "size": 5232915,
     "folder": "Tất cả"
   },
   {
@@ -360,18 +560,58 @@
     "folder": "Tất cả"
   },
   {
-    "id": "Một Tình Yêu Hai Thử Thách (Lofi Version).mp3",
-    "filename": "Một Tình Yêu Hai Thử Thách (Lofi Version).mp3",
-    "title": "Một Tình Yêu Hai Thử Thách (Lofi Version)",
-    "url": "data/M%E1%BB%99t%20T%C3%ACnh%20Y%C3%AAu%20Hai%20Th%E1%BB%AD%20Th%C3%A1ch%20%28Lofi%20Version%29.mp3",
+    "id": "Một Lần Dang Dở.mp3",
+    "filename": "Một Lần Dang Dở.mp3",
+    "title": "Một Lần Dang Dở",
+    "url": "data/M%E1%BB%99t%20L%E1%BA%A7n%20Dang%20D%E1%BB%9F.mp3",
+    "size": 3932700,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Một Tình Yêu Hai Thử Thách.mp3",
+    "filename": "Một Tình Yêu Hai Thử Thách.mp3",
+    "title": "Một Tình Yêu Hai Thử Thách",
+    "url": "data/M%E1%BB%99t%20T%C3%ACnh%20Y%C3%AAu%20Hai%20Th%E1%BB%AD%20Th%C3%A1ch.mp3",
     "size": 4131064,
     "folder": "Tất cả"
   },
   {
-    "id": "ngày này năm xưa.mp3",
-    "filename": "ngày này năm xưa.mp3",
-    "title": "ngày này năm xưa",
-    "url": "data/ng%C3%A0y%20n%C3%A0y%20n%C4%83m%20x%C6%B0a.mp3",
+    "id": "Mở Lòng Vì Ai.mp3",
+    "filename": "Mở Lòng Vì Ai.mp3",
+    "title": "Mở Lòng Vì Ai",
+    "url": "data/M%E1%BB%9F%20L%C3%B2ng%20V%C3%AC%20Ai.mp3",
+    "size": 4751820,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Ngày Em Cưới.mp3",
+    "filename": "Ngày Em Cưới.mp3",
+    "title": "Ngày Em Cưới",
+    "url": "data/Ng%C3%A0y%20Em%20C%C6%B0%E1%BB%9Bi.mp3",
+    "size": 5042063,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Ngày Em Đi Mất.mp3",
+    "filename": "Ngày Em Đi Mất.mp3",
+    "title": "Ngày Em Đi Mất",
+    "url": "data/Ng%C3%A0y%20Em%20%C4%90i%20M%E1%BA%A5t.mp3",
+    "size": 4059034,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Ngày Hạnh Phúc.mp3",
+    "filename": "Ngày Hạnh Phúc.mp3",
+    "title": "Ngày Hạnh Phúc",
+    "url": "data/Ng%C3%A0y%20H%E1%BA%A1nh%20Ph%C3%BAc.mp3",
+    "size": 5477876,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Ngày Này Năm Xưa.mp3",
+    "filename": "Ngày Này Năm Xưa.mp3",
+    "title": "Ngày Này Năm Xưa",
+    "url": "data/Ng%C3%A0y%20N%C3%A0y%20N%C4%83m%20X%C6%B0a.mp3",
     "size": 3208989,
     "folder": "Tất cả"
   },
@@ -384,11 +624,43 @@
     "folder": "Tất cả"
   },
   {
-    "id": "Người Ấy (The First Show).mp3",
-    "filename": "Người Ấy (The First Show).mp3",
-    "title": "Người Ấy (The First Show)",
-    "url": "data/Ng%C6%B0%E1%BB%9Di%20%E1%BA%A4y%20%28The%20First%20Show%29.mp3",
+    "id": "Ngôi Nhà Hạnh Phúc.mp3",
+    "filename": "Ngôi Nhà Hạnh Phúc.mp3",
+    "title": "Ngôi Nhà Hạnh Phúc",
+    "url": "data/Ng%C3%B4i%20Nh%C3%A0%20H%E1%BA%A1nh%20Ph%C3%BAc.mp3",
+    "size": 3314057,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Người Ta Nói.mp3",
+    "filename": "Người Ta Nói.mp3",
+    "title": "Người Ta Nói",
+    "url": "data/Ng%C6%B0%E1%BB%9Di%20Ta%20N%C3%B3i.mp3",
+    "size": 2887960,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Người Ấy.mp3",
+    "filename": "Người Ấy.mp3",
+    "title": "Người Ấy",
+    "url": "data/Ng%C6%B0%E1%BB%9Di%20%E1%BA%A4y.mp3",
     "size": 4187418,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Năm Tháng Ấy.mp3",
+    "filename": "Năm Tháng Ấy.mp3",
+    "title": "Năm Tháng Ấy",
+    "url": "data/N%C4%83m%20Th%C3%A1ng%20%E1%BA%A4y.mp3",
+    "size": 3139795,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Nơi Này Có Anh.mp3",
+    "filename": "Nơi Này Có Anh.mp3",
+    "title": "Nơi Này Có Anh",
+    "url": "data/N%C6%A1i%20N%C3%A0y%20C%C3%B3%20Anh.mp3",
+    "size": 4452630,
     "folder": "Tất cả"
   },
   {
@@ -412,15 +684,15 @@
     "filename": "Nửa Vầng Trăng.mp3",
     "title": "Nửa Vầng Trăng",
     "url": "data/N%E1%BB%ADa%20V%E1%BA%A7ng%20Tr%C4%83ng.mp3",
-    "size": 5155868,
+    "size": 4734626,
     "folder": "Tất cả"
   },
   {
-    "id": "Bởi Vì Anh Yêu Em - Phan Đinh Tùng live at The Harmony Show.mp3",
-    "filename": "Bởi Vì Anh Yêu Em - Phan Đinh Tùng live at The Harmony Show.mp3",
-    "title": "Phan Đinh Tùng live at The Harmony Show",
-    "url": "data/B%E1%BB%9Fi%20V%C3%AC%20Anh%20Y%C3%AAu%20Em%20-%20Phan%20%C4%90inh%20T%C3%B9ng%20live%20at%20The%20Harmony%20Show.mp3",
-    "size": 2666558,
+    "id": "Phai Dấu Cuộc Tình 2.mp3",
+    "filename": "Phai Dấu Cuộc Tình 2.mp3",
+    "title": "Phai Dấu Cuộc Tình 2",
+    "url": "data/Phai%20D%E1%BA%A5u%20Cu%E1%BB%99c%20T%C3%ACnh%202.mp3",
+    "size": 4169635,
     "folder": "Tất cả"
   },
   {
@@ -428,7 +700,7 @@
     "filename": "Phía Sau Em.mp3",
     "title": "Phía Sau Em",
     "url": "data/Ph%C3%ADa%20Sau%20Em.mp3",
-    "size": 3593049,
+    "size": 3944195,
     "folder": "Tất cả"
   },
   {
@@ -448,6 +720,14 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Rồi Tới Luôn.mp3",
+    "filename": "Rồi Tới Luôn.mp3",
+    "title": "Rồi Tới Luôn",
+    "url": "data/R%E1%BB%93i%20T%E1%BB%9Bi%20Lu%C3%B4n.mp3",
+    "size": 3885826,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Rừng Xanh Vang Tiếng Ta Lư.mp3",
     "filename": "Rừng Xanh Vang Tiếng Ta Lư.mp3",
     "title": "Rừng Xanh Vang Tiếng Ta Lư",
@@ -461,6 +741,14 @@
     "title": "Sao Mình Chưa Nắm Tay Nhau",
     "url": "data/Sao%20M%C3%ACnh%20Ch%C6%B0a%20N%E1%BA%AFm%20Tay%20Nhau.mp3",
     "size": 4549937,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Sau Này Em Cưới Ai Rồi.mp3",
+    "filename": "Sau Này Em Cưới Ai Rồi.mp3",
+    "title": "Sau Này Em Cưới Ai Rồi",
+    "url": "data/Sau%20N%C3%A0y%20Em%20C%C6%B0%E1%BB%9Bi%20Ai%20R%E1%BB%93i.mp3",
+    "size": 5003268,
     "folder": "Tất cả"
   },
   {
@@ -496,6 +784,14 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Thay Tôi Yêu Cô Ấy.mp3",
+    "filename": "Thay Tôi Yêu Cô Ấy.mp3",
+    "title": "Thay Tôi Yêu Cô Ấy",
+    "url": "data/Thay%20T%C3%B4i%20Y%C3%AAu%20C%C3%B4%20%E1%BA%A4y.mp3",
+    "size": 5263647,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Thiêu Thân.mp3",
     "filename": "Thiêu Thân.mp3",
     "title": "Thiêu Thân",
@@ -504,18 +800,66 @@
     "folder": "Tất cả"
   },
   {
-    "id": "Thương Nhau Lý Tơ Hồng (Lofi Version).mp3",
-    "filename": "Thương Nhau Lý Tơ Hồng (Lofi Version).mp3",
-    "title": "Thương Nhau Lý Tơ Hồng (Lofi Version)",
-    "url": "data/Th%C6%B0%C6%A1ng%20Nhau%20L%C3%BD%20T%C6%A1%20H%E1%BB%93ng%20%28Lofi%20Version%29.mp3",
+    "id": "Thu Cuối.mp3",
+    "filename": "Thu Cuối.mp3",
+    "title": "Thu Cuối",
+    "url": "data/Thu%20Cu%E1%BB%91i.mp3",
+    "size": 4818093,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Tháng Tư Là Lời Nói Dối Của Em.mp3",
+    "filename": "Tháng Tư Là Lời Nói Dối Của Em.mp3",
+    "title": "Tháng Tư Là Lời Nói Dối Của Em",
+    "url": "data/Th%C3%A1ng%20T%C6%B0%20L%C3%A0%20L%E1%BB%9Di%20N%C3%B3i%20D%E1%BB%91i%20C%E1%BB%A7a%20Em.mp3",
+    "size": 5924889,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Thêm Bao Nhiêu Lâu.mp3",
+    "filename": "Thêm Bao Nhiêu Lâu.mp3",
+    "title": "Thêm Bao Nhiêu Lâu",
+    "url": "data/Th%C3%AAm%20Bao%20Nhi%C3%AAu%20L%C3%A2u.mp3",
+    "size": 4990205,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Thích Thì Đến.mp3",
+    "filename": "Thích Thì Đến.mp3",
+    "title": "Thích Thì Đến",
+    "url": "data/Th%C3%ADch%20Th%C3%AC%20%C4%90%E1%BA%BFn.mp3",
+    "size": 5828110,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Thương Nhau Lý Tơ Hồng.mp3",
+    "filename": "Thương Nhau Lý Tơ Hồng.mp3",
+    "title": "Thương Nhau Lý Tơ Hồng",
+    "url": "data/Th%C6%B0%C6%A1ng%20Nhau%20L%C3%BD%20T%C6%A1%20H%E1%BB%93ng.mp3",
     "size": 3431808,
     "folder": "Tất cả"
   },
   {
-    "id": "Thế Giới Thứ 4 (Tự Yêu Chính Mình).mp3",
-    "filename": "Thế Giới Thứ 4 (Tự Yêu Chính Mình).mp3",
-    "title": "Thế Giới Thứ 4 (Tự Yêu Chính Mình)",
-    "url": "data/Th%E1%BA%BF%20Gi%E1%BB%9Bi%20Th%E1%BB%A9%204%20%28T%E1%BB%B1%20Y%C3%AAu%20Ch%C3%ADnh%20M%C3%ACnh%29.mp3",
+    "id": "Thấm Thía.mp3",
+    "filename": "Thấm Thía.mp3",
+    "title": "Thấm Thía",
+    "url": "data/Th%E1%BA%A5m%20Th%C3%ADa.mp3",
+    "size": 6152959,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Thất Tình.mp3",
+    "filename": "Thất Tình.mp3",
+    "title": "Thất Tình",
+    "url": "data/Th%E1%BA%A5t%20T%C3%ACnh.mp3",
+    "size": 5858077,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Thế Giới Thứ 4.mp3",
+    "filename": "Thế Giới Thứ 4.mp3",
+    "title": "Thế Giới Thứ 4",
+    "url": "data/Th%E1%BA%BF%20Gi%E1%BB%9Bi%20Th%E1%BB%A9%204.mp3",
     "size": 5307621,
     "folder": "Tất cả"
   },
@@ -525,6 +869,14 @@
     "title": "Thời Gian Sẽ Trả Lời",
     "url": "data/Th%E1%BB%9Di%20Gian%20S%E1%BA%BD%20Tr%E1%BA%A3%20L%E1%BB%9Di.mp3",
     "size": 4109358,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Trai Tài Gái Sắc.mp3",
+    "filename": "Trai Tài Gái Sắc.mp3",
+    "title": "Trai Tài Gái Sắc",
+    "url": "data/Trai%20T%C3%A0i%20G%C3%A1i%20S%E1%BA%AFc.mp3",
+    "size": 4875075,
     "folder": "Tất cả"
   },
   {
@@ -544,14 +896,6 @@
     "folder": "Tất cả"
   },
   {
-    "id": "Hạnh Phúc Cuối Cùng - Trương Việt Thái [LYRIC VIDEO].mp3",
-    "filename": "Hạnh Phúc Cuối Cùng - Trương Việt Thái [LYRIC VIDEO].mp3",
-    "title": "Trương Việt Thái [LYRIC VIDEO]",
-    "url": "data/H%E1%BA%A1nh%20Ph%C3%BAc%20Cu%E1%BB%91i%20C%C3%B9ng%20-%20Tr%C6%B0%C6%A1ng%20Vi%E1%BB%87t%20Th%C3%A1i%20%5BLYRIC%20VIDEO%5D.mp3",
-    "size": 5219200,
-    "folder": "Tất cả"
-  },
-  {
     "id": "Trước Khi Tuổi Trẻ Này Đóng Lối.mp3",
     "filename": "Trước Khi Tuổi Trẻ Này Đóng Lối.mp3",
     "title": "Trước Khi Tuổi Trẻ Này Đóng Lối",
@@ -560,11 +904,27 @@
     "folder": "Tất cả"
   },
   {
-    "id": "tâm.mp3",
-    "filename": "tâm.mp3",
-    "title": "tâm",
-    "url": "data/t%C3%A2m.mp3",
+    "id": "Tâm.mp3",
+    "filename": "Tâm.mp3",
+    "title": "Tâm",
+    "url": "data/T%C3%A2m.mp3",
     "size": 1877557,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Tìm Lại Bầu Trời.mp3",
+    "filename": "Tìm Lại Bầu Trời.mp3",
+    "title": "Tìm Lại Bầu Trời",
+    "url": "data/T%C3%ACm%20L%E1%BA%A1i%20B%E1%BA%A7u%20Tr%E1%BB%9Di.mp3",
+    "size": 5260918,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Tình Ka.mp3",
+    "filename": "Tình Ka.mp3",
+    "title": "Tình Ka",
+    "url": "data/T%C3%ACnh%20Ka.mp3",
+    "size": 6600076,
     "folder": "Tất cả"
   },
   {
@@ -576,18 +936,26 @@
     "folder": "Tất cả"
   },
   {
-    "id": "Tình yêu mang theo.mp3",
-    "filename": "Tình yêu mang theo.mp3",
-    "title": "Tình yêu mang theo",
-    "url": "data/T%C3%ACnh%20y%C3%AAu%20mang%20theo.mp3",
+    "id": "Tình Yêu Diệu Kỳ.mp3",
+    "filename": "Tình Yêu Diệu Kỳ.mp3",
+    "title": "Tình Yêu Diệu Kỳ",
+    "url": "data/T%C3%ACnh%20Y%C3%AAu%20Di%E1%BB%87u%20K%E1%BB%B3.mp3",
+    "size": 3279964,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Tình Yêu Mang Theo.mp3",
+    "filename": "Tình Yêu Mang Theo.mp3",
+    "title": "Tình Yêu Mang Theo",
+    "url": "data/T%C3%ACnh%20Y%C3%AAu%20Mang%20Theo.mp3",
     "size": 3938745,
     "folder": "Tất cả"
   },
   {
-    "id": "TÌNH ĐẦU - Tăng Duy Tân _ Official Music Video.mp3",
-    "filename": "TÌNH ĐẦU - Tăng Duy Tân _ Official Music Video.mp3",
-    "title": "Tăng Duy Tân _ Official Music Video",
-    "url": "data/T%C3%8CNH%20%C4%90%E1%BA%A6U%20-%20T%C4%83ng%20Duy%20T%C3%A2n%20_%20Official%20Music%20Video.mp3",
+    "id": "Tình Đầu.mp3",
+    "filename": "Tình Đầu.mp3",
+    "title": "Tình Đầu",
+    "url": "data/T%C3%ACnh%20%C4%90%E1%BA%A7u.mp3",
     "size": 4926611,
     "folder": "Tất cả"
   },
@@ -608,11 +976,35 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Từng Yêu.mp3",
+    "filename": "Từng Yêu.mp3",
+    "title": "Từng Yêu",
+    "url": "data/T%E1%BB%ABng%20Y%C3%AAu.mp3",
+    "size": 5005191,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Vầng Trăng Khóc.mp3",
+    "filename": "Vầng Trăng Khóc.mp3",
+    "title": "Vầng Trăng Khóc",
+    "url": "data/V%E1%BA%A7ng%20Tr%C4%83ng%20Kh%C3%B3c.mp3",
+    "size": 5324009,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Về Bên Anh.mp3",
+    "filename": "Về Bên Anh.mp3",
+    "title": "Về Bên Anh",
+    "url": "data/V%E1%BB%81%20B%C3%AAn%20Anh.mp3",
+    "size": 3917925,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Vợ Người Ta.mp3",
     "filename": "Vợ Người Ta.mp3",
     "title": "Vợ Người Ta",
     "url": "data/V%E1%BB%A3%20Ng%C6%B0%E1%BB%9Di%20Ta.mp3",
-    "size": 3150086,
+    "size": 3228416,
     "folder": "Tất cả"
   },
   {
@@ -624,11 +1016,35 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Xem Như Tôi Từng Cưới Được Cô Ấy.mp3",
+    "filename": "Xem Như Tôi Từng Cưới Được Cô Ấy.mp3",
+    "title": "Xem Như Tôi Từng Cưới Được Cô Ấy",
+    "url": "data/Xem%20Nh%C6%B0%20T%C3%B4i%20T%E1%BB%ABng%20C%C6%B0%E1%BB%9Bi%20%C4%90%C6%B0%E1%BB%A3c%20C%C3%B4%20%E1%BA%A4y.mp3",
+    "size": 4451888,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Xin Đừng Rời Xa Anh.mp3",
+    "filename": "Xin Đừng Rời Xa Anh.mp3",
+    "title": "Xin Đừng Rời Xa Anh",
+    "url": "data/Xin%20%C4%90%E1%BB%ABng%20R%E1%BB%9Di%20Xa%20Anh.mp3",
+    "size": 4749840,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Yêu Em Nhưng Không Với Tới.mp3",
+    "filename": "Yêu Em Nhưng Không Với Tới.mp3",
+    "title": "Yêu Em Nhưng Không Với Tới",
+    "url": "data/Y%C3%AAu%20Em%20Nh%C6%B0ng%20Kh%C3%B4ng%20V%E1%BB%9Bi%20T%E1%BB%9Bi.mp3",
+    "size": 7727781,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Yêu Em Rất Nhiều.mp3",
     "filename": "Yêu Em Rất Nhiều.mp3",
     "title": "Yêu Em Rất Nhiều",
     "url": "data/Y%C3%AAu%20Em%20R%E1%BA%A5t%20Nhi%E1%BB%81u.mp3",
-    "size": 4562407,
+    "size": 5625344,
     "folder": "Tất cả"
   },
   {
@@ -640,6 +1056,22 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Yêu Là Phải Thương.mp3",
+    "filename": "Yêu Là Phải Thương.mp3",
+    "title": "Yêu Là Phải Thương",
+    "url": "data/Y%C3%AAu%20L%C3%A0%20Ph%E1%BA%A3i%20Th%C6%B0%C6%A1ng.mp3",
+    "size": 3900074,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Yêu Là Tha Thu.mp3",
+    "filename": "Yêu Là Tha Thu.mp3",
+    "title": "Yêu Là Tha Thu",
+    "url": "data/Y%C3%AAu%20L%C3%A0%20Tha%20Thu.mp3",
+    "size": 5401107,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Yêu Lại Từ Đầu.mp3",
     "filename": "Yêu Lại Từ Đầu.mp3",
     "title": "Yêu Lại Từ Đầu",
@@ -648,11 +1080,19 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Ác Mộng Đẹp.mp3",
+    "filename": "Ác Mộng Đẹp.mp3",
+    "title": "Ác Mộng Đẹp",
+    "url": "data/%C3%81c%20M%E1%BB%99ng%20%C4%90%E1%BA%B9p.mp3",
+    "size": 4828186,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Âm Thầm Bên Em.mp3",
     "filename": "Âm Thầm Bên Em.mp3",
     "title": "Âm Thầm Bên Em",
     "url": "data/%C3%82m%20Th%E1%BA%A7m%20B%C3%AAn%20Em.mp3",
-    "size": 4661432,
+    "size": 13597207,
     "folder": "Tất cả"
   },
   {
@@ -664,11 +1104,27 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Đi Về Nhà.mp3",
+    "filename": "Đi Về Nhà.mp3",
+    "title": "Đi Về Nhà",
+    "url": "data/%C4%90i%20V%E1%BB%81%20Nh%C3%A0.mp3",
+    "size": 3289467,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Điều Anh Biết.mp3",
     "filename": "Điều Anh Biết.mp3",
     "title": "Điều Anh Biết",
     "url": "data/%C4%90i%E1%BB%81u%20Anh%20Bi%E1%BA%BFt.mp3",
     "size": 5038912,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Đám Cưới Miệt Vườn.mp3",
+    "filename": "Đám Cưới Miệt Vườn.mp3",
+    "title": "Đám Cưới Miệt Vườn",
+    "url": "data/%C4%90%C3%A1m%20C%C6%B0%E1%BB%9Bi%20Mi%E1%BB%87t%20V%C6%B0%E1%BB%9Dn.mp3",
+    "size": 8073012,
     "folder": "Tất cả"
   },
   {
@@ -680,6 +1136,30 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Đã Lỡ Yêu Em Nhiều.mp3",
+    "filename": "Đã Lỡ Yêu Em Nhiều.mp3",
+    "title": "Đã Lỡ Yêu Em Nhiều",
+    "url": "data/%C4%90%C3%A3%20L%E1%BB%A1%20Y%C3%AAu%20Em%20Nhi%E1%BB%81u.mp3",
+    "size": 4258307,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Đêm Trăng Tình Yêu.mp3",
+    "filename": "Đêm Trăng Tình Yêu.mp3",
+    "title": "Đêm Trăng Tình Yêu",
+    "url": "data/%C4%90%C3%AAm%20Tr%C4%83ng%20T%C3%ACnh%20Y%C3%AAu.mp3",
+    "size": 4229417,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Đêm Trắng.mp3",
+    "filename": "Đêm Trắng.mp3",
+    "title": "Đêm Trắng",
+    "url": "data/%C4%90%C3%AAm%20Tr%E1%BA%AFng.mp3",
+    "size": 4363551,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Đôi Mắt.mp3",
     "filename": "Đôi Mắt.mp3",
     "title": "Đôi Mắt",
@@ -688,11 +1168,19 @@
     "folder": "Tất cả"
   },
   {
-    "id": "ĐÔNG PHAI MỜ DÁNG AI (CTHBN2) _ DATKAA _ PROD. QT BEATZ _ OFFICIAL LYRICS  VIDEO.mp3",
-    "filename": "ĐÔNG PHAI MỜ DÁNG AI (CTHBN2) _ DATKAA _ PROD. QT BEATZ _ OFFICIAL LYRICS  VIDEO.mp3",
-    "title": "ĐÔNG PHAI MỜ DÁNG AI (CTHBN2)",
-    "url": "data/%C4%90%C3%94NG%20PHAI%20M%E1%BB%9C%20D%C3%81NG%20AI%20%28CTHBN2%29%20_%20DATKAA%20_%20PROD.%20QT%20BEATZ%20_%20OFFICIAL%20LYRICS%20%20VIDEO.mp3",
+    "id": "Đông Phai Mờ Dáng Ai.mp3",
+    "filename": "Đông Phai Mờ Dáng Ai.mp3",
+    "title": "Đông Phai Mờ Dáng Ai",
+    "url": "data/%C4%90%C3%B4ng%20Phai%20M%E1%BB%9D%20D%C3%A1ng%20Ai.mp3",
     "size": 4608831,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Đông Về Em Ở Đâu .mp3",
+    "filename": "Đông Về Em Ở Đâu .mp3",
+    "title": "Đông Về Em Ở Đâu",
+    "url": "data/%C4%90%C3%B4ng%20V%E1%BB%81%20Em%20%E1%BB%9E%20%C4%90%C3%A2u%20.mp3",
+    "size": 5532809,
     "folder": "Tất cả"
   },
   {
@@ -704,11 +1192,27 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Đưa Nhau Đi Trốn.mp3",
+    "filename": "Đưa Nhau Đi Trốn.mp3",
+    "title": "Đưa Nhau Đi Trốn",
+    "url": "data/%C4%90%C6%B0a%20Nhau%20%C4%90i%20Tr%E1%BB%91n.mp3",
+    "size": 3849350,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Đường Chân Trời.mp3",
     "filename": "Đường Chân Trời.mp3",
     "title": "Đường Chân Trời",
     "url": "data/%C4%90%C6%B0%E1%BB%9Dng%20Ch%C3%A2n%20Tr%E1%BB%9Di.mp3",
     "size": 6463716,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Đường Một Chiều.mp3",
+    "filename": "Đường Một Chiều.mp3",
+    "title": "Đường Một Chiều",
+    "url": "data/%C4%90%C6%B0%E1%BB%9Dng%20M%E1%BB%99t%20Chi%E1%BB%81u.mp3",
+    "size": 5505966,
     "folder": "Tất cả"
   },
   {
@@ -724,31 +1228,47 @@
     "filename": "Đến Khi Nào.mp3",
     "title": "Đến Khi Nào",
     "url": "data/%C4%90%E1%BA%BFn%20Khi%20N%C3%A0o.mp3",
-    "size": 3959209,
+    "size": 4716795,
     "folder": "Tất cả"
   },
   {
-    "id": "Đến Sau những niềm đau.mp3",
-    "filename": "Đến Sau những niềm đau.mp3",
-    "title": "Đến Sau những niềm đau",
-    "url": "data/%C4%90%E1%BA%BFn%20Sau%20nh%E1%BB%AFng%20ni%E1%BB%81m%20%C4%91au.mp3",
+    "id": "Đến Sau Những Niềm Đau.mp3",
+    "filename": "Đến Sau Những Niềm Đau.mp3",
+    "title": "Đến Sau Những Niềm Đau",
+    "url": "data/%C4%90%E1%BA%BFn%20Sau%20Nh%E1%BB%AFng%20Ni%E1%BB%81m%20%C4%90au.mp3",
     "size": 2875021,
     "folder": "Tất cả"
   },
   {
-    "id": "ĐỪNG VỀ TRỄ.mp3",
-    "filename": "ĐỪNG VỀ TRỄ.mp3",
-    "title": "ĐỪNG VỀ TRỄ",
-    "url": "data/%C4%90%E1%BB%AANG%20V%E1%BB%80%20TR%E1%BB%84.mp3",
+    "id": "Đớn Đau Vô Cùng.mp3",
+    "filename": "Đớn Đau Vô Cùng.mp3",
+    "title": "Đớn Đau Vô Cùng",
+    "url": "data/%C4%90%E1%BB%9Bn%20%C4%90au%20V%C3%B4%20C%C3%B9ng.mp3",
+    "size": 3315225,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Đừng Làm Anh Đau.mp3",
+    "filename": "Đừng Làm Anh Đau.mp3",
+    "title": "Đừng Làm Anh Đau",
+    "url": "data/%C4%90%E1%BB%ABng%20L%C3%A0m%20Anh%20%C4%90au.mp3",
+    "size": 4531335,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Đừng Về Trễ.mp3",
+    "filename": "Đừng Về Trễ.mp3",
+    "title": "Đừng Về Trễ",
+    "url": "data/%C4%90%E1%BB%ABng%20V%E1%BB%81%20Tr%E1%BB%85.mp3",
     "size": 4948964,
     "folder": "Tất cả"
   },
   {
-    "id": "ƯNG HOÀNG PHÚC  NGƯỜI TA NÓI 2017  OFFICIAL MV.mp3",
-    "filename": "ƯNG HOÀNG PHÚC  NGƯỜI TA NÓI 2017  OFFICIAL MV.mp3",
-    "title": "ƯNG HOÀNG PHÚC  NGƯỜI TA NÓI 2017  OFFICIAL MV",
-    "url": "data/%C6%AFNG%20HO%C3%80NG%20PH%C3%9AC%20%20NG%C6%AF%E1%BB%9CI%20TA%20N%C3%93I%202017%20%20OFFICIAL%20MV.mp3",
-    "size": 2887960,
+    "id": "Ấn nút nhớ tuổi thơ.mp3",
+    "filename": "Ấn nút nhớ tuổi thơ.mp3",
+    "title": "Ấn nút nhớ tuổi thơ",
+    "url": "data/%E1%BA%A4n%20n%C3%BAt%20nh%E1%BB%9B%20tu%E1%BB%95i%20th%C6%A1.mp3",
+    "size": 3913569,
     "folder": "Tất cả"
   }
 ]
