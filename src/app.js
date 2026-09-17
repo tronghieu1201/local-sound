@@ -3,6 +3,16 @@
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Environment & Data Path Resolvers (Seamless on GitHub Pages & Localhost) ---
+    const isBackendAvailable = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !!window.location.port;
+
+    function resolveDataUrl(path) {
+        if (window.location.pathname.includes('/src/')) {
+            return '../' + path;
+        }
+        return './' + path;
+    }
+
     // --- State Variables ---
     let allSongs = [];
     let currentPlaylist = [];
@@ -357,16 +367,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
         updateWakeLockState();
-    }
-
-    // --- Environment & Data Path Resolvers (Seamless on GitHub Pages & Localhost) ---
-    const isBackendAvailable = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !!window.location.port;
-
-    function resolveDataUrl(path) {
-        if (window.location.pathname.includes('/src/')) {
-            return '../' + path;
-        }
-        return './' + path;
     }
 
     function applyUserData(data) {
