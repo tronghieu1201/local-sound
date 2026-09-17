@@ -359,41 +359,78 @@ document.addEventListener('DOMContentLoaded', () => {
         updateWakeLockState();
     }
 
+    // --- Environment & Data Path Resolvers (Seamless on GitHub Pages & Localhost) ---
+    const isBackendAvailable = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && !!window.location.port;
+
+    function resolveDataUrl(path) {
+        if (window.location.pathname.includes('/src/')) {
+            return '../' + path;
+        }
+        return './' + path;
+    }
+
+    function applyUserData(data) {
+        if (!data) return;
+        if (data.categories && typeof data.categories === 'object') {
+            songCategories = data.categories;
+        }
+        if (Array.isArray(data.recent)) {
+            recentSongs = data.recent;
+        }
+        if (data.loopMode) {
+            loopMode = data.loopMode;
+            updateLoopModeButtonUI();
+        }
+        if (data.volume !== undefined) {
+            const v = parseFloat(data.volume);
+            if (!isNaN(v)) {
+                audio.volume = v;
+                if (volumeSlider) volumeSlider.value = v;
+                if (volumeFill) volumeFill.style.width = `${v * 100}%`;
+            }
+        }
+        if (typeof data.noteText === 'string') {
+            noteText = data.noteText;
+            const editor = document.getElementById('note-text-editor');
+            if (editor) editor.value = noteText;
+        }
+        if (Array.isArray(data.noteList)) {
+            noteList = data.noteList;
+            renderChecklist();
+        }
+    }
+
     // --- Disk File & Server Sync Persistence ---
     async function loadUserDataFromServer() {
         try {
-            let res = await fetch('/api/user-data');
-            if (!res.ok) {
-                res = await fetch('./data/user_data.json');
-            }
-            if (res.ok) {
-                const data = await res.json();
-                if (data && typeof data.categories === 'object' && data.categories !== null) {
-                    songCategories = data.categories;
+            let localLoaded = false;
+            try {
+                const savedUserData = localStorage.getItem('local_music_user_data');
+                if (savedUserData) {
+                    const data = JSON.parse(savedUserData);
+                    applyUserData(data);
+                    localLoaded = true;
                 }
-                if (data && Array.isArray(data.recent)) {
-                    recentSongs = data.recent;
-                }
-                if (data && data.loopMode) {
-                    loopMode = data.loopMode;
-                    updateLoopModeButtonUI();
-                }
-                if (data && data.volume !== undefined) {
-                    const v = parseFloat(data.volume);
-                    if (!isNaN(v)) {
-                        audio.volume = v;
-                        volumeSlider.value = v;
-                        volumeFill.style.width = `${v * 100}%`;
+            } catch (e) { }
+
+            // If running with local python backend server, sync from backend API
+            if (isBackendAvailable) {
+                try {
+                    const res = await fetch('/api/user-data');
+                    if (res.ok) {
+                        const data = await res.json();
+                        applyUserData(data);
+                        return;
                     }
-                }
-                if (data && typeof data.noteText === 'string') {
-                    noteText = data.noteText;
-                    const editor = document.getElementById('note-text-editor');
-                    if (editor) editor.value = noteText;
-                }
-                if (data && Array.isArray(data.noteList)) {
-                    noteList = data.noteList;
-                    renderChecklist();
+                } catch (e) { }
+            }
+
+            // If not loaded from localStorage and not local server, load static default user_data.json
+            if (!localLoaded) {
+                const staticRes = await fetch(resolveDataUrl('data/user_data.json'));
+                if (staticRes.ok) {
+                    const data = await staticRes.json();
+                    applyUserData(data);
                 }
             }
         } catch (err) {
@@ -403,11 +440,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function saveUserDataToServer() {
         try {
-            try {
-                localStorage.setItem('local_music_categories', JSON.stringify(songCategories));
-                localStorage.setItem('local_music_recent', JSON.stringify(recentSongs));
-            } catch (e) { }
-
             const payload = {
                 categories: songCategories,
                 recent: recentSongs,
@@ -418,28 +450,61 @@ document.addEventListener('DOMContentLoaded', () => {
                 noteList: noteList
             };
 
-            await fetch('/api/user-data', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            // Always save to localStorage immediately for instant offline persistence
+            try {
+                localStorage.setItem('local_music_user_data', JSON.stringify(payload));
+                localStorage.setItem('local_music_categories', JSON.stringify(songCategories));
+                localStorage.setItem('local_music_recent', JSON.stringify(recentSongs));
+            } catch (e) { }
+
+            // If local backend server is running, also sync to Python server
+            if (isBackendAvailable) {
+                try {
+                    await fetch('/api/user-data', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                } catch (e) { }
+            }
         } catch (err) {
-            console.warn('Lỗi ghi user_data lên server:', err);
+            console.warn('Lỗi ghi user_data:', err);
         }
     }
 
     // --- Fetch Songs ---
     async function fetchSongs() {
         try {
-            let songRes = await fetch('/api/songs');
-            if (!songRes.ok) {
-                songRes = await fetch('./data/songs.json');
-            }
-            allSongs = await songRes.json();
+            let loadedSongs = null;
 
-            if (!Array.isArray(allSongs)) {
-                allSongs = [];
+            // If running on local server, try backend API first
+            if (isBackendAvailable) {
+                try {
+                    const songRes = await fetch('/api/songs');
+                    if (songRes.ok) {
+                        loadedSongs = await songRes.json();
+                    }
+                } catch (e) { }
             }
+
+            // If static environment (GitHub Pages) or API not available, fetch static data/songs.json
+            if (!Array.isArray(loadedSongs) || loadedSongs.length === 0) {
+                const staticRes = await fetch(resolveDataUrl('data/songs.json'));
+                if (staticRes.ok) {
+                    loadedSongs = await staticRes.json();
+                }
+            }
+
+            allSongs = Array.isArray(loadedSongs) ? loadedSongs : [];
+
+            // Fix relative audio URLs for allSongs if running from subdirectories
+            allSongs.forEach(song => {
+                if (song && song.url) {
+                    if (window.location.pathname.includes('/src/') && !song.url.startsWith('../') && !song.url.startsWith('http')) {
+                        song.url = '../' + song.url;
+                    }
+                }
+            });
 
             try {
                 await loadUserDataFromServer();
@@ -837,37 +902,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Delete Song API Handler ---
     async function deleteSong(song) {
         if (!song || !song.id) return;
-        try {
-            const res = await fetch('/api/delete-song', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: song.id })
-            });
-
-            if (res.ok) {
-                if (currentIndex >= 0 && currentPlaylist[currentIndex]?.id === song.id) {
-                    audio.pause();
-                    isPlaying = false;
-                    audio.src = '';
-                    currentIndex = -1;
-                    if (currentTitle) currentTitle.textContent = 'Chọn một bài hát để bắt đầu';
-                }
-
-                allSongs = allSongs.filter(s => s && s.id !== song.id);
-
-                if (totalCountEl) totalCountEl.textContent = allSongs.length;
-                updateCategoryBadges();
-                renderFolders();
-                filterAndRenderSongs();
-                updatePlayerUI();
-
-                showToast(`Đã xoá bài hát "${song.title}" vĩnh viễn trong data!`, 'success');
-            } else {
-                showToast(`Lỗi: Không thể xoá bài hát "${song.title}"`, 'warning');
+        let deletedOnServer = false;
+        if (isBackendAvailable) {
+            try {
+                const res = await fetch('/api/delete-song', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: song.id })
+                });
+                if (res.ok) deletedOnServer = true;
+            } catch (err) {
+                console.warn('Lỗi xoá trên server:', err);
             }
-        } catch (err) {
-            console.error('Lỗi xoá bài hát:', err);
-            showToast('Lỗi kết nối máy chủ khi xoá bài hát!', 'warning');
+        }
+
+        if (currentIndex >= 0 && currentPlaylist[currentIndex]?.id === song.id) {
+            audio.pause();
+            isPlaying = false;
+            audio.src = '';
+            currentIndex = -1;
+            if (currentTitle) currentTitle.textContent = 'Chọn một bài hát để bắt đầu';
+        }
+
+        allSongs = allSongs.filter(s => s && s.id !== song.id);
+
+        if (totalCountEl) totalCountEl.textContent = allSongs.length;
+        updateCategoryBadges();
+        renderFolders();
+        filterAndRenderSongs();
+        updatePlayerUI();
+
+        if (deletedOnServer) {
+            showToast(`Đã xoá bài hát "${song.title}" vĩnh viễn trong data!`, 'success');
+        } else {
+            showToast(`Đã ẩn bài hát "${song.title}" khỏi danh sách phát!`, 'info');
         }
     }
 
