@@ -184,6 +184,14 @@
     "folder": "Tất cả"
   },
   {
+    "id": "Chẳng Còn Thời Gian Ấy .mp3",
+    "filename": "Chẳng Còn Thời Gian Ấy .mp3",
+    "title": "Chẳng Còn Thời Gian Ấy",
+    "url": "data/Ch%E1%BA%B3ng%20C%C3%B2n%20Th%E1%BB%9Di%20Gian%20%E1%BA%A4y%20.mp3",
+    "size": 3265121,
+    "folder": "Tất cả"
+  },
+  {
     "id": "Chỉ Anh Hiểu Em.mp3",
     "filename": "Chỉ Anh Hiểu Em.mp3",
     "title": "Chỉ Anh Hiểu Em",
@@ -365,6 +373,14 @@
     "title": "E Là Không Thể",
     "url": "data/E%20L%C3%A0%20Kh%C3%B4ng%20Th%E1%BB%83.mp3",
     "size": 4216532,
+    "folder": "Tất cả"
+  },
+  {
+    "id": "Em Có Yêu Anh Không.mp3",
+    "filename": "Em Có Yêu Anh Không.mp3",
+    "title": "Em Có Yêu Anh Không",
+    "url": "data/Em%20C%C3%B3%20Y%C3%AAu%20Anh%20Kh%C3%B4ng.mp3",
+    "size": 4471677,
     "folder": "Tất cả"
   },
   {
