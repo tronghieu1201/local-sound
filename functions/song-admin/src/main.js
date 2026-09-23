@@ -195,13 +195,15 @@ export default async ({ req, res, log, error }) => {
     }
 
     const payload = parseRequestBody(req);
+    const requestedAction = String(payload.action || '').trim().toLowerCase();
     const rowId = String(payload.rowId || '').trim();
-    const action = String(payload.action || (rowId ? 'delete' : '')).trim().toLowerCase();
+    // Keep the old { rowId } request format as an implicit delete action.
+    const action = requestedAction || (rowId ? 'delete' : '');
 
-    if (!['delete', 'stats'].includes(action)) {
+    if (!['delete', 'stats', 'cleanup-upload'].includes(action)) {
         return res.json({
             success: false,
-            error: 'action must be delete or stats.'
+            error: 'action must be stats, delete, or cleanup-upload.'
         }, 400);
     }
 
@@ -223,6 +225,39 @@ export default async ({ req, res, log, error }) => {
                 error: 'Unable to calculate song stats.'
             }, 502);
         }
+    }
+
+    if (action === 'cleanup-upload') {
+        const fileId = String(payload.fileId || '').trim();
+        if (!fileId) {
+            return res.json({
+                success: false,
+                error: 'fileId is required for cleanup-upload.'
+            }, 400);
+        }
+
+        try {
+            await storage.deleteFile({
+                bucketId: config.LOCAL_SOUND_BUCKET_ID,
+                fileId
+            });
+        } catch (err) {
+            if (getErrorStatus(err) !== 404) {
+                error(`Failed to cleanup uploaded storage file ${fileId}: ${err?.message || 'unknown error'}`);
+                return res.json({
+                    success: false,
+                    error: 'Unable to cleanup uploaded song file.',
+                    fileId
+                }, 502);
+            }
+
+            log(`Storage file ${fileId} was already missing during upload cleanup.`);
+        }
+
+        return res.json({
+            success: true,
+            fileId
+        });
     }
 
     if (!rowId) {

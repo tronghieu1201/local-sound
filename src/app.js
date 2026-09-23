@@ -727,7 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function executeCloudDelete(rowId) {
         return executeSongAdminFunction(
-            { rowId },
+            { action: 'delete', rowId },
             'Appwrite Function xoá bài hát thất bại.'
         );
     }
@@ -912,10 +912,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (rowError) {
             let cleanupError = null;
             try {
-                await storage.deleteFile({
-                    bucketId: APPWRITE_CONFIG.bucketId,
-                    fileId
-                });
+                await executeSongAdminFunction(
+                    { action: 'cleanup-upload', fileId },
+                    'Appwrite Function cleanup-upload failed.'
+                );
             } catch (error) {
                 cleanupError = error;
                 console.error('[LocalSound] Không thể rollback file upload sau khi tạo row thất bại:', error);
