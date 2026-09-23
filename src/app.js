@@ -733,10 +733,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function fetchCloudStats() {
-        return executeSongAdminFunction(
-            { action: 'stats' },
-            'Appwrite Function thống kê dữ liệu thất bại.'
-        );
+        try {
+            return await executeSongAdminFunction(
+                { action: 'stats' },
+                'Appwrite Function thống kê dữ liệu thất bại.'
+            );
+        } catch (error) {
+            if (/rowId is required/i.test(error?.message || '')) {
+                throw new Error('Function song-admin trên Appwrite chưa được deploy bản hỗ trợ action stats.');
+            }
+            throw error;
+        }
     }
 
     function formatManagementBytes(bytes) {
@@ -2666,6 +2673,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function handleShortcuts(e) {
         if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+        const key = typeof e?.key === 'string' ? e.key.toLowerCase() : '';
 
         if (e.code === 'Space') {
             e.preventDefault();
@@ -2688,11 +2696,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (volumeSlider) volumeSlider.value = audio.volume;
             if (volumeFill) volumeFill.style.width = `${audio.volume * 100}%`;
             updateVolumeIcons();
-        } else if (e.key.toLowerCase() === 'n') {
+        } else if (key === 'n') {
             playNextTrack();
-        } else if (e.key.toLowerCase() === 'p') {
+        } else if (key === 'p') {
             playPrevTrack();
-        } else if (e.key.toLowerCase() === 'm') {
+        } else if (key === 'm') {
             if (muteBtn) muteBtn.click();
         } else if (e.key === '/') {
             e.preventDefault();
