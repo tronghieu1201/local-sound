@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Music Player - Trình Nghe Nhạc Offline</title>
-    <link rel="icon" type="image/png" href="../data/logo/logo.png">
+    <title>LocalSound - Trình Nghe Nhạc Cloud</title>
+    <link rel="icon" type="image/png" href="../assets/logo/logo.png">
     <link rel="stylesheet" href="styles.css">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -22,11 +22,11 @@
         <aside class="sidebar">
             <div class="brand" id="brand-home-btn" role="button" tabindex="0" title="Về trang chủ (Tất cả bài hát)">
                 <div class="logo-icon">
-                    <img src="../data/logo/logo.png" alt="LocalSound Logo" class="brand-logo-img">
+                    <img src="../assets/logo/logo.png" alt="LocalSound Logo" class="brand-logo-img">
                 </div>
                 <div class="brand-text">
                     <h1>LocalSound</h1>
-                    <span class="badge">Offline Pro</span>
+                    <span class="badge">Cloud Pro</span>
                 </div>
             </div>
 
@@ -140,6 +140,14 @@
                         </svg>
                     </button>
                 </div>
+                <div class="auth-controls hidden" id="auth-controls">
+                    <button class="auth-btn" id="auth-login-btn" type="button">Đăng nhập Admin</button>
+                    <div class="admin-session hidden" id="admin-session">
+                        <span class="admin-user-label" id="admin-user-label"></span>
+                        <button class="auth-btn" id="admin-upload-btn" type="button">Upload</button>
+                        <button class="auth-btn danger" id="admin-logout-btn" type="button">Đăng xuất</button>
+                    </div>
+                </div>
             </header>
 
             <!-- Center Stage Player -->
@@ -152,7 +160,7 @@
                     <div class="vinyl-disc" id="vinyl-disc">
                         <div class="vinyl-grooves"></div>
                         <div class="vinyl-center">
-                            <img id="vinyl-img" src="../data/logo/cd.png" alt="Vinyl Logo" class="vinyl-img hidden"
+                            <img id="vinyl-img" src="../assets/logo/cd.png" alt="Vinyl Logo" class="vinyl-img hidden"
                                 onerror="this.classList.add('hidden'); if(document.getElementById('vinyl-art')) document.getElementById('vinyl-art').classList.remove('hidden');"
                                 onload="this.classList.remove('hidden'); if(document.getElementById('vinyl-art')) document.getElementById('vinyl-art').classList.add('hidden');">
                             <div class="vinyl-art" id="vinyl-art">🎵</div>
@@ -259,7 +267,7 @@
                 </div>
 
                 <div class="song-list" id="song-list">
-                    <div class="loading-spinner">Đang tải danh sách bài hát local...</div>
+                    <div class="loading-spinner">Đang tải danh sách bài hát Cloud...</div>
                 </div>
             </section>
 
@@ -426,6 +434,46 @@
         </div>
     </div>
 
+    <!-- Admin Login Modal -->
+    <div class="modal" id="auth-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3>Đăng nhập Admin</h3>
+                <button class="close-btn" id="close-auth" type="button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="admin-login-form" class="auth-form">
+                    <label for="admin-email">Email</label>
+                    <input id="admin-email" type="email" autocomplete="username" required>
+                    <label for="admin-password">Mật khẩu</label>
+                    <input id="admin-password" type="password" autocomplete="current-password" required>
+                    <p id="auth-error" class="auth-error hidden"></p>
+                    <button class="auth-submit-btn" type="submit">Đăng nhập</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Upload -->
+    <div class="modal" id="upload-placeholder-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3>Upload bài hát</h3>
+                <button class="close-btn" id="close-upload-placeholder" type="button">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form class="auth-form upload-form" id="admin-upload-form">
+                    <label for="admin-upload-file">File MP3</label>
+                    <input id="admin-upload-file" type="file" accept=".mp3,audio/mpeg" required>
+                    <p class="upload-file-meta hidden" id="admin-upload-file-meta"></p>
+
+                    <p class="upload-status hidden" id="admin-upload-status" role="status" aria-live="polite"></p>
+                    <button class="auth-submit-btn" id="admin-upload-submit" type="submit">Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Player 3-Dots Mobile Menu Modal -->
     <div class="modal" id="player-more-modal">
         <div class="modal-content small">
@@ -495,7 +543,7 @@
     <div class="mobile-mini-player hidden" id="mobile-mini-player">
         <div class="mini-player-left" id="mini-player-info">
             <div class="mini-disc" id="mini-disc">
-                <img id="mini-img" src="../data/logo/cd.png" alt="Mini CD">
+                <img id="mini-img" src="../assets/logo/cd.png" alt="Mini CD">
             </div>
             <div class="mini-track-info">
                 <div class="mini-title" id="mini-title">Chưa chọn bài hát</div>
@@ -537,6 +585,7 @@
     <!-- Hidden HTML5 Audio Element -->
     <audio id="audio-player" preload="auto"></audio>
 
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@20.0.0" onerror="this.onerror=null;this.src='https://unpkg.com/appwrite@20.0.0';"></script>
     <script src="background.js"></script>
     <script src="app.js"></script>
 </body>

@@ -1,22 +1,22 @@
 @echo off
-title Local Music Player Server
+title LocalSound Cloud Static Server
 cd /d "%~dp0"
 
 echo ==================================================
-echo   LOCAL MUSIC PLAYER IS STARTING...
+echo   LOCALSOUND CLOUD STATIC SERVER IS STARTING...
 echo ==================================================
 
 where py >nul 2>&1
 if %ERRORLEVEL%==0 (
-    echo Opening browser and starting server via py...
-    py server.py %*
+    echo Starting static server at http://localhost:8000 ...
+    py -m http.server 8000
     goto END
 )
 
 where python >nul 2>&1
 if %ERRORLEVEL%==0 (
-    echo Opening browser and starting server via python...
-    python server.py %*
+    echo Starting static server at http://localhost:8000 ...
+    python -m http.server 8000
     goto END
 )
 

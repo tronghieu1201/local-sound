@@ -201,28 +201,28 @@ body {
     height: 12px;
     border-radius: 2px;
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
-    background-image: url("../data/logo/vietnam.png");
+    background-image: url("../assets/logo/vietnam.png");
 }
 
 .icon-cat.icon-tghy,
 .icon-cat.icon-trghy {
-    background-image: url("../data/logo/trghy.jpg");
+    background-image: url("../assets/logo/trghy.jpg");
 }
 
 .icon-cat.icon-cooking {
-    background-image: url("../data/logo/cooking.png");
+    background-image: url("../assets/logo/cooking.png");
 }
 
 .icon-cat.icon-karaoke {
-    background-image: url("../data/logo/karaoke.png");
+    background-image: url("../assets/logo/karaoke.png");
 }
 
 .icon-cat.icon-sleep {
-    background-image: url("../data/logo/sleeping.png");
+    background-image: url("../assets/logo/sleeping.png");
 }
 
 .icon-cat.icon-note {
-    background-image: url("../data/logo/note.png");
+    background-image: url("../assets/logo/note.png");
 }
 
 .cat-tag-btn .icon-cat {
@@ -2458,6 +2458,134 @@ kbd {
     height: 1px;
     background: var(--border-glass);
     margin: 4px 0;
+}
+
+/* Appwrite Admin Controls */
+.auth-controls {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    margin-left: auto;
+    position: relative;
+    z-index: 2;
+}
+
+.admin-session {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.admin-user-label {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+}
+
+.auth-btn,
+.auth-submit-btn {
+    border: 1px solid rgba(0, 217, 245, 0.35);
+    border-radius: var(--radius-sm);
+    background: rgba(0, 217, 245, 0.1);
+    color: var(--primary);
+    cursor: pointer;
+    font-weight: 600;
+    padding: 8px 10px;
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.auth-btn:hover,
+.auth-submit-btn:hover {
+    background: rgba(0, 217, 245, 0.2);
+    transform: translateY(-1px);
+}
+
+.auth-btn.danger {
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.auth-form label {
+    color: var(--text-muted);
+    font-size: 0.82rem;
+}
+
+.auth-form input {
+    width: 100%;
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-sm);
+    background: rgba(0, 0, 0, 0.24);
+    color: var(--text-main);
+    padding: 10px 12px;
+    outline: none;
+}
+
+.auth-form input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(0, 217, 245, 0.12);
+}
+
+.auth-error {
+    color: #fca5a5;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.auth-placeholder {
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.upload-form input[type="file"] {
+    padding: 8px;
+    color: var(--text-muted);
+}
+
+.upload-file-meta {
+    margin: -2px 0 2px;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.upload-status {
+    margin: 2px 0 0;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.upload-status.is-uploading {
+    color: var(--primary);
+}
+
+.upload-status.is-success {
+    color: #a7f3d0;
+}
+
+.upload-status.is-error {
+    color: #fca5a5;
+}
+
+@media (max-width: 900px) {
+    .auth-controls {
+        margin-left: 0;
+    }
+
+    .admin-user-label {
+        display: none;
+    }
 }
 
 
