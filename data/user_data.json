@@ -310,9 +310,14 @@
     "Đường Một Chiều.mp3": [],
     "Đớn Đau Vô Cùng.mp3": [],
     "Đừng Làm Anh Đau.mp3": [],
-    "Ấn nút nhớ tuổi thơ.mp3": []
+    "Ấn nút nhớ tuổi thơ.mp3": [],
+    "Chẳng Còn Thời Gian Ấy .mp3": [],
+    "Em Có Yêu Anh Không.mp3": []
   },
   "recent": [
+    "Tình Đầu.mp3",
+    "Chỉ Anh Hiểu Em.mp3",
+    "E Là Không Thể.mp3",
     "Em Không Muốn Về Nhà.mp3",
     "Đớn Đau Vô Cùng.mp3",
     "3107.mp3",
@@ -329,13 +334,10 @@
     "3 1 0 7 (feat. Duongg & Nâu).mp3",
     "ngày này năm xưa.mp3",
     "Điều Anh Biết.mp3",
-    "Đơn Giản Anh Yêu Em.mp3",
-    "Anh Không Tha Thứ.mp3",
-    "Thương Nhau Lý Tơ Hồng.mp3",
-    "Dừng Thương.mp3"
+    "Đơn Giản Anh Yêu Em.mp3"
   ],
   "volume": 0.8,
-  "loopMode": "one",
+  "loopMode": "shuffle",
   "powerSaver": false,
   "noteText": "ssssssssssssss",
   "noteList": [
