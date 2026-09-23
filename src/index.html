@@ -85,6 +85,9 @@
                         <span class="folder-dot"></span> Tất cả
                     </button>
                 </div>
+                <button class="folder-item hidden" id="management-data-btn" type="button">
+                    <span class="folder-dot"></span> Quản lý data
+                </button>
             </div>
         </aside>
 
@@ -141,7 +144,7 @@
                     </button>
                 </div>
                 <div class="auth-controls hidden" id="auth-controls">
-                    <button class="auth-btn" id="auth-login-btn" type="button">Đăng nhập Admin</button>
+                    <button class="auth-btn" id="auth-login-btn" type="button">Quản lý</button>
                     <div class="admin-session hidden" id="admin-session">
                         <span class="admin-user-label" id="admin-user-label"></span>
                         <button class="auth-btn" id="admin-upload-btn" type="button">Upload</button>
@@ -438,7 +441,7 @@
     <div class="modal" id="auth-modal">
         <div class="modal-content small">
             <div class="modal-header">
-                <h3>Đăng nhập Admin</h3>
+                <h3>Quản lý</h3>
                 <button class="close-btn" id="close-auth" type="button">&times;</button>
             </div>
             <div class="modal-body">
@@ -470,6 +473,36 @@
                     <p class="upload-status hidden" id="admin-upload-status" role="status" aria-live="polite"></p>
                     <button class="auth-submit-btn" id="admin-upload-submit" type="submit">Upload</button>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Data Management -->
+    <div class="modal" id="management-data-modal">
+        <div class="modal-content small">
+            <div class="modal-header">
+                <h3>Quản lý dữ liệu</h3>
+                <button class="close-btn" id="close-management-data" type="button">&times;</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
+                <section>
+                    <h4 style="margin: 0 0 8px;">DUNG LƯỢNG STORAGE</h4>
+                    <div id="management-storage-used">Đang tải...</div>
+                    <div id="management-storage-limit" style="color: var(--text-muted);">Giới hạn: Đang tải...</div>
+                    <div style="height: 10px; margin: 10px 0 6px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,0.12);">
+                        <div id="management-storage-progress" style="height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg, var(--primary), #a78bfa); transition: width 180ms ease;"></div>
+                    </div>
+                    <div id="management-storage-remaining" style="color: var(--text-muted);">Còn lại: Đang tải...</div>
+                    <div id="management-storage-percent" style="color: var(--text-muted);">Sử dụng: Đang tải...</div>
+                </section>
+                <section>
+                    <h4 style="margin: 0 0 8px;">THƯ VIỆN</h4>
+                    <div id="management-song-count">Tổng số bài: Đang tải...</div>
+                    <div id="management-file-count">Tổng số file: Đang tải...</div>
+                    <div id="management-total-size" style="color: var(--text-muted);">Dung lượng TB: Đang tải...</div>
+                </section>
+                <p id="management-stats-status" class="auth-error hidden" role="status" aria-live="polite"></p>
+                <button class="btn-secondary" id="management-refresh-btn" type="button">Làm mới</button>
             </div>
         </div>
     </div>

@@ -1,6 +1,6 @@
-import { Client, Storage, TablesDB } from 'node-appwrite';
+import { Client, Query, Storage, TablesDB } from 'node-appwrite';
 
-const CONFIG_KEYS = [
+const REQUIRED_CONFIG_KEYS = [
     'LOCAL_SOUND_DATABASE_ID',
     'LOCAL_SOUND_TABLE_ID',
     'LOCAL_SOUND_BUCKET_ID',
@@ -8,6 +8,7 @@ const CONFIG_KEYS = [
     'APPWRITE_FUNCTION_API_ENDPOINT',
     'APPWRITE_FUNCTION_PROJECT_ID'
 ];
+const PAGE_SIZE = 100;
 
 function getHeader(headers, name) {
     if (!headers || typeof headers !== 'object') return '';
@@ -65,10 +66,91 @@ function getRowFileId(row) {
 }
 
 function getConfig() {
-    const config = Object.fromEntries(CONFIG_KEYS.map((key) => [key, process.env[key]?.trim() || '']));
-    const missingKeys = CONFIG_KEYS.filter((key) => !config[key]);
+    const config = Object.fromEntries(REQUIRED_CONFIG_KEYS.map((key) => [key, process.env[key]?.trim() || '']));
+    const missingKeys = REQUIRED_CONFIG_KEYS.filter((key) => !config[key]);
+    const rawQuotaMb = process.env.LOCAL_SOUND_STORAGE_QUOTA_MB?.trim() || '';
+    const parsedQuotaMb = rawQuotaMb ? Number(rawQuotaMb) : null;
+    const quotaBytes = Number.isFinite(parsedQuotaMb) && parsedQuotaMb > 0
+        ? Math.floor(parsedQuotaMb * 1024 * 1024)
+        : null;
 
-    return { config, missingKeys };
+    return {
+        config,
+        missingKeys,
+        quotaBytes,
+        invalidQuota: Boolean(rawQuotaMb) && quotaBytes === null
+    };
+}
+
+async function listAllFiles(storage, bucketId) {
+    const files = [];
+    let offset = 0;
+
+    while (true) {
+        const response = await storage.listFiles({
+            bucketId,
+            queries: [Query.limit(PAGE_SIZE), Query.offset(offset)]
+        });
+        const page = Array.isArray(response?.files) ? response.files : [];
+        files.push(...page);
+        offset += page.length;
+
+        if (page.length === 0 || page.length < PAGE_SIZE) break;
+        if (Number.isFinite(response?.total) && files.length >= response.total) break;
+    }
+
+    return files;
+}
+
+async function listAllRows(tablesDB, databaseId, tableId) {
+    const rows = [];
+    let offset = 0;
+
+    while (true) {
+        const response = await tablesDB.listRows({
+            databaseId,
+            tableId,
+            queries: [Query.limit(PAGE_SIZE), Query.offset(offset)]
+        });
+        const page = Array.isArray(response?.rows) ? response.rows : [];
+        rows.push(...page);
+        offset += page.length;
+
+        if (page.length === 0 || page.length < PAGE_SIZE) break;
+        if (Number.isFinite(response?.total) && rows.length >= response.total) break;
+    }
+
+    return rows;
+}
+
+async function getStats(storage, tablesDB, config, quotaBytes) {
+    const [files, rows] = await Promise.all([
+        listAllFiles(storage, config.LOCAL_SOUND_BUCKET_ID),
+        listAllRows(tablesDB, config.LOCAL_SOUND_DATABASE_ID, config.LOCAL_SOUND_TABLE_ID)
+    ]);
+
+    const usedBytes = files.reduce((total, file) => {
+        const fileSize = Number(file?.sizeOriginal ?? file?.size ?? 0);
+        return total + (Number.isFinite(fileSize) && fileSize > 0 ? fileSize : 0);
+    }, 0);
+    const remainingBytes = quotaBytes === null ? null : Math.max(quotaBytes - usedBytes, 0);
+    const usagePercent = quotaBytes === null
+        ? null
+        : Math.round((usedBytes / quotaBytes) * 10000) / 100;
+
+    return {
+        success: true,
+        storage: {
+            usedBytes,
+            fileCount: files.length
+        },
+        database: {
+            songCount: rows.length
+        },
+        quotaBytes,
+        remainingBytes,
+        usagePercent
+    };
 }
 
 export default async ({ req, res, log, error }) => {
@@ -77,12 +159,12 @@ export default async ({ req, res, log, error }) => {
     if (method !== 'POST') {
         return res.json({
             success: false,
-            error: 'Only POST requests are supported for delete-song.'
+            error: 'Only POST requests are supported.'
         }, 405);
     }
 
     const adminUserId = getHeader(req?.headers, 'x-appwrite-user-id');
-    const { config, missingKeys } = getConfig();
+    const { config, missingKeys, quotaBytes, invalidQuota } = getConfig();
 
     if (!adminUserId || adminUserId !== config.LOCAL_SOUND_ADMIN_USER_ID) {
         return res.json({
@@ -99,6 +181,10 @@ export default async ({ req, res, log, error }) => {
         }, 500);
     }
 
+    if (invalidQuota) {
+        log('LOCAL_SOUND_STORAGE_QUOTA_MB is invalid; dashboard will report quota as unconfigured.');
+    }
+
     const dynamicKey = getHeader(req?.headers, 'x-appwrite-key');
     if (!dynamicKey) {
         error('song-admin request is missing the dynamic x-appwrite-key header.');
@@ -110,10 +196,12 @@ export default async ({ req, res, log, error }) => {
 
     const payload = parseRequestBody(req);
     const rowId = String(payload.rowId || '').trim();
-    if (!rowId) {
+    const action = String(payload.action || (rowId ? 'delete' : '')).trim().toLowerCase();
+
+    if (!['delete', 'stats'].includes(action)) {
         return res.json({
             success: false,
-            error: 'rowId is required.'
+            error: 'action must be delete or stats.'
         }, 400);
     }
 
@@ -124,6 +212,25 @@ export default async ({ req, res, log, error }) => {
 
     const tablesDB = new TablesDB(client);
     const storage = new Storage(client);
+
+    if (action === 'stats') {
+        try {
+            return res.json(await getStats(storage, tablesDB, config, quotaBytes));
+        } catch (err) {
+            error(`Failed to calculate song stats: ${err?.message || 'unknown error'}`);
+            return res.json({
+                success: false,
+                error: 'Unable to calculate song stats.'
+            }, 502);
+        }
+    }
+
+    if (!rowId) {
+        return res.json({
+            success: false,
+            error: 'rowId is required for delete.'
+        }, 400);
+    }
 
     let row;
     try {

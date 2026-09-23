@@ -129,6 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearSearchBtn = document.getElementById('clear-search');
     const sortSelect = document.getElementById('sort-select');
     const folderListEl = document.getElementById('folder-list');
+    const managementDataBtn = document.getElementById('management-data-btn');
 
     // Visualizer Canvas
     const canvas = document.getElementById('visualizer-canvas');
@@ -161,6 +162,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminUploadFileMeta = document.getElementById('admin-upload-file-meta');
     const adminUploadStatus = document.getElementById('admin-upload-status');
     const adminUploadSubmit = document.getElementById('admin-upload-submit');
+    const managementDataModal = document.getElementById('management-data-modal');
+    const closeManagementData = document.getElementById('close-management-data');
+    const managementRefreshBtn = document.getElementById('management-refresh-btn');
+    const managementStorageUsed = document.getElementById('management-storage-used');
+    const managementStorageLimit = document.getElementById('management-storage-limit');
+    const managementStorageProgress = document.getElementById('management-storage-progress');
+    const managementStorageRemaining = document.getElementById('management-storage-remaining');
+    const managementStoragePercent = document.getElementById('management-storage-percent');
+    const managementSongCount = document.getElementById('management-song-count');
+    const managementFileCount = document.getElementById('management-file-count');
+    const managementTotalSize = document.getElementById('management-total-size');
+    const managementStatsStatus = document.getElementById('management-stats-status');
 
     // Power Saver & Screen WakeLock State
     let isPowerSaverON = false;
@@ -488,6 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (authControls) authControls.classList.remove('hidden');
         if (authLoginBtn) authLoginBtn.classList.toggle('hidden', isAdmin);
         if (adminSession) adminSession.classList.toggle('hidden', !isAdmin);
+        if (managementDataBtn) managementDataBtn.classList.toggle('hidden', !isAdmin);
         if (adminUserLabel) {
             adminUserLabel.textContent = isAdmin
                 ? (currentAuthUser?.email || currentAuthUser?.$id || 'Admin')
@@ -576,6 +590,48 @@ document.addEventListener('DOMContentLoaded', () => {
         return '';
     }
 
+    function normalizeFolderList(value) {
+        let values = [];
+
+        if (Array.isArray(value)) {
+            values = value;
+        } else if (typeof value === 'string') {
+            const trimmed = value.trim();
+            if (!trimmed) return [];
+
+            try {
+                const parsed = JSON.parse(trimmed);
+                values = Array.isArray(parsed) ? parsed : [trimmed];
+            } catch {
+                values = [trimmed];
+            }
+        } else if (value !== undefined && value !== null) {
+            values = [value];
+        }
+
+        const seen = new Set();
+        return values
+            .map(folder => String(folder || '').trim())
+            .filter(folder => {
+                if (!folder || normalizeFolderValue(folder) === normalizeFolderValue('Tất cả')) {
+                    return false;
+                }
+
+                const key = normalizeFolderValue(folder);
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            });
+    }
+
+    function getRowFolders(row) {
+        const hasFoldersField = Object.prototype.hasOwnProperty.call(row || {}, 'folders');
+        const rawFolders = hasFoldersField
+            ? row.folders
+            : getFirstRowValue(row, ['folder', 'directory', 'directoryName']);
+        return normalizeFolderList(rawFolders);
+    }
+
     function normalizeCloudPath(value) {
         return String(value || '')
             .replace(/\\/g, '/')
@@ -605,12 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ]) || fileId).trim();
         const normalizedFilename = normalizeCloudPath(rawFilename);
         const filename = normalizedFilename.split('/').pop() || fileId;
-        const rawFolder = String(getFirstRowValue(row, [
-            'folder', 'directory', 'directoryName'
-        ]) || '').trim();
-        const folder = rawFolder && normalizeFolderValue(rawFolder) !== normalizeFolderValue('Tất cả')
-            ? rawFolder
-            : null;
+        const folders = getRowFolders(row);
 
         return {
             id: rowId,
@@ -619,7 +670,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: String(getFirstRowValue(row, ['title', 'songTitle']) || filename.replace(/\.[^.]+$/, '')),
             url: getAppwriteFileViewUrl(storage, fileId),
             size: Number(getFirstRowValue(row, ['size', 'sizeOriginal', 'fileSize'])) || 0,
-            folder
+            folders
         };
     }
 
@@ -647,13 +698,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return songs;
     }
 
-    async function executeCloudDelete(rowId) {
-        if (!isAdmin) throw new Error('Bạn cần đăng nhập Admin để xoá bài hát.');
+    async function executeSongAdminFunction(payload, fallbackError) {
+        if (!isAdmin) throw new Error('Bạn cần đăng nhập Admin để thực hiện thao tác này.');
 
         const { functions, ExecutionMethod } = createAppwriteServices();
         const execution = await functions.createExecution({
             functionId: APPWRITE_CONFIG.functionId,
-            body: JSON.stringify({ rowId }),
+            body: JSON.stringify(payload),
             async: false,
             xpath: '/',
             method: ExecutionMethod?.POST || 'POST',
@@ -669,9 +720,92 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (execution?.status === 'failed' || (status && (status < 200 || status >= 300)) || responseBody.success !== true) {
-            throw new Error(responseBody.error || execution?.errors || 'Appwrite Function xoá bài hát thất bại.');
+            throw new Error(responseBody.error || execution?.errors || fallbackError);
         }
         return responseBody;
+    }
+
+    async function executeCloudDelete(rowId) {
+        return executeSongAdminFunction(
+            { rowId },
+            'Appwrite Function xoá bài hát thất bại.'
+        );
+    }
+
+    async function fetchCloudStats() {
+        return executeSongAdminFunction(
+            { action: 'stats' },
+            'Appwrite Function thống kê dữ liệu thất bại.'
+        );
+    }
+
+    function formatManagementBytes(bytes) {
+        const value = Number(bytes);
+        if (!Number.isFinite(value) || value < 0) return '0 MB';
+        if (value >= 1024 * 1024 * 1024) return `${(value / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+        return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+    }
+
+    function setManagementStatsStatus(message, isError = false) {
+        if (!managementStatsStatus) return;
+        managementStatsStatus.textContent = message || '';
+        managementStatsStatus.classList.toggle('hidden', !message);
+        managementStatsStatus.style.color = isError ? '#fca5a5' : 'var(--text-muted)';
+    }
+
+    function renderManagementStats(stats) {
+        const usedBytes = Number(stats?.storage?.usedBytes) || 0;
+        const fileCount = Number(stats?.storage?.fileCount) || 0;
+        const songCount = Number(stats?.database?.songCount) || 0;
+        const quotaBytes = Number.isFinite(Number(stats?.quotaBytes)) && Number(stats?.quotaBytes) > 0
+            ? Number(stats.quotaBytes)
+            : null;
+        const remainingBytes = quotaBytes === null
+            ? null
+            : Math.max(Number(stats?.remainingBytes) || 0, 0);
+        const usagePercent = quotaBytes === null
+            ? null
+            : Math.min(Math.max(Number(stats?.usagePercent) || 0, 0), 100);
+
+        if (managementStorageUsed) managementStorageUsed.textContent = `Đã dùng: ${formatManagementBytes(usedBytes)}`;
+        if (managementStorageLimit) {
+            managementStorageLimit.textContent = quotaBytes === null
+                ? 'Giới hạn: Chưa cấu hình'
+                : `Giới hạn: ${formatManagementBytes(quotaBytes)}`;
+        }
+        if (managementStorageRemaining) {
+            managementStorageRemaining.textContent = quotaBytes === null
+                ? 'Còn lại: Chưa cấu hình'
+                : `Còn lại: ${formatManagementBytes(remainingBytes)}`;
+        }
+        if (managementStoragePercent) {
+            managementStoragePercent.textContent = usagePercent === null
+                ? 'Sử dụng: Chưa cấu hình'
+                : `Sử dụng: ${usagePercent.toFixed(2)}%`;
+        }
+        if (managementStorageProgress) {
+            managementStorageProgress.style.width = `${usagePercent === null ? 0 : usagePercent}%`;
+            managementStorageProgress.title = usagePercent === null ? 'Chưa cấu hình quota' : `${usagePercent.toFixed(2)}%`;
+        }
+        if (managementSongCount) managementSongCount.textContent = `Tổng số bài: ${songCount}`;
+        if (managementFileCount) managementFileCount.textContent = `Tổng số file: ${fileCount}`;
+        if (managementTotalSize) managementTotalSize.textContent = `Dung lượng TB: ${formatManagementBytes(usedBytes)}`;
+    }
+
+    async function loadManagementStats() {
+        if (!isAdmin) return;
+
+        setManagementStatsStatus('Đang tải thống kê...');
+        try {
+            const stats = await fetchCloudStats();
+            renderManagementStats(stats);
+            setManagementStatsStatus('Đã cập nhật.');
+            return stats;
+        } catch (error) {
+            console.error('[LocalSound] Cloud stats failed:', error);
+            setManagementStatsStatus(`Không thể tải thống kê: ${error?.message || 'Không rõ nguyên nhân.'}`, true);
+            throw error;
+        }
     }
 
     function setUploadStatus(message, type = '') {
@@ -724,6 +858,19 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error('Không thể tạo title từ tên file MP3.');
         }
 
+        const stats = await fetchCloudStats();
+        renderManagementStats(stats);
+        const quotaBytes = Number(stats?.quotaBytes);
+        if (Number.isFinite(quotaBytes) && quotaBytes > 0) {
+            const usedBytes = Number(stats?.storage?.usedBytes) || 0;
+            const remainingBytes = Math.max(quotaBytes - usedBytes, 0);
+            if (usedBytes + file.size > quotaBytes) {
+                throw new Error(
+                    `Không đủ dung lượng Storage. Còn lại: ${formatManagementBytes(remainingBytes)}. File này: ${formatManagementBytes(file.size)}.`
+                );
+            }
+        }
+
         const { storage, tablesDB, ID } = createAppwriteServices();
         const uploadedFile = await storage.createFile({
             bucketId: APPWRITE_CONFIG.bucketId,
@@ -745,7 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     title: cleanTitle,
                     filename,
                     fileId,
-                    folder: null,
+                    folders: [],
                     size: file.size,
                     active: true
                 }
@@ -775,7 +922,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    async function updateCloudSongFolder(song, catName, isCurrentlyActive) {
+    async function updateCloudSongFolders(song, catName, isCurrentlyActive) {
         if (!isAdmin) {
             throw new Error('Bạn cần đăng nhập Admin để đổi folder bài hát.');
         }
@@ -783,9 +930,17 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error('Bài hát thiếu Appwrite rowId, không thể cập nhật folder.');
         }
 
-        const nextFolder = isCurrentlyActive ? null : (CLOUD_CATEGORY_FOLDERS[catName] || null);
-        if (!nextFolder && !isCurrentlyActive) {
+        const targetFolder = CLOUD_CATEGORY_FOLDERS[catName] || null;
+        if (!targetFolder) {
             throw new Error('Folder category không hợp lệ.');
+        }
+
+        const targetKey = normalizeFolderValue(targetFolder);
+        let nextFolders = normalizeFolderList(song.folders);
+        nextFolders = nextFolders.filter(folder => normalizeFolderValue(folder) !== targetKey);
+        if (!isCurrentlyActive) {
+            nextFolders.push(targetFolder);
+            nextFolders = normalizeFolderList(nextFolders);
         }
 
         const { tablesDB } = createAppwriteServices();
@@ -793,15 +948,16 @@ document.addEventListener('DOMContentLoaded', () => {
             databaseId: APPWRITE_CONFIG.databaseId,
             tableId: APPWRITE_CONFIG.tableId,
             rowId: song.rowId,
-            data: { folder: nextFolder }
+            data: { folders: nextFolders }
         });
 
+        song.folders = nextFolders;
         await fetchSongs();
-        return nextFolder;
+        return nextFolders;
     }
 
     async function changeSongCategory(song, catName, isCurrentlyActive) {
-        return updateCloudSongFolder(song, catName, isCurrentlyActive);
+        return updateCloudSongFolders(song, catName, isCurrentlyActive);
     }
 
     // --- Fetch Songs ---
@@ -863,7 +1019,22 @@ document.addEventListener('DOMContentLoaded', () => {
     function isCloudCategoryActive(song, catName) {
         const expectedFolder = CLOUD_CATEGORY_FOLDERS[catName];
         if (!song || !expectedFolder) return false;
-        return normalizeFolderValue(song.folder) === normalizeFolderValue(expectedFolder);
+
+        const expectedKey = normalizeFolderValue(expectedFolder);
+        const legacyKeys = {
+            nhacdo: ['nhacdo'],
+            trghy: ['trghy', 'tghy', 'xxx'],
+            tghy: ['trghy', 'tghy', 'xxx'],
+            xxx: ['trghy', 'tghy', 'xxx'],
+            cooking: ['cooking'],
+            karaoke: ['karaoke'],
+            sleep: ['sleep']
+        }[catName] || [];
+
+        return normalizeFolderList(song.folders).some(folder => {
+            const folderKey = normalizeFolderValue(folder);
+            return folderKey === expectedKey || legacyKeys.includes(folderKey);
+        });
     }
 
     function getSongCategoriesForUI(song) {
@@ -887,12 +1058,11 @@ document.addEventListener('DOMContentLoaded', () => {
         allSongs.forEach(song => {
             if (!song) return;
             const cats = getSongCategoriesForUI(song);
-            const folder = (song.folder || '').toLowerCase();
             if (cats.includes('nhacdo')) nhacdoCount++;
             if (isTrghyCategory(cats)) tghyCount++;
-            if (cats.includes('cooking') || folder.includes('cooking')) cookingCount++;
+            if (cats.includes('cooking')) cookingCount++;
             if (cats.includes('karaoke')) karaokeCount++;
-            if (cats.includes('sleep') || folder.includes('sleep')) sleepCount++;
+            if (cats.includes('sleep')) sleepCount++;
         });
 
         if (nhacdoCountEl) nhacdoCountEl.textContent = nhacdoCount;
@@ -904,7 +1074,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Folder Navigation ---
     function renderFolders() {
-        const folders = [...new Set(allSongs.map(s => s ? s.folder : null).filter(Boolean))];
+        const folderMap = new Map();
+        allSongs.forEach(song => {
+            normalizeFolderList(song?.folders).forEach(folder => {
+                const key = normalizeFolderValue(folder);
+                if (key && !folderMap.has(key)) folderMap.set(key, folder);
+            });
+        });
+        const folders = [...folderMap.values()];
         folderListEl.innerHTML = `
             <button class="folder-item active" data-folder="all">
                 <span class="folder-dot"></span> Tất cả (${allSongs.length})
@@ -912,8 +1089,10 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
 
         folders.forEach(folder => {
-            if (folder !== 'Tất cả') {
-                const count = allSongs.filter(s => s && s.folder === folder).length;
+            if (normalizeFolderValue(folder) !== normalizeFolderValue('Tất cả')) {
+                const folderKey = normalizeFolderValue(folder);
+                const count = allSongs.filter(song => normalizeFolderList(song?.folders)
+                    .some(songFolder => normalizeFolderValue(songFolder) === folderKey)).length;
                 const btn = document.createElement('button');
                 btn.className = 'folder-item';
                 btn.dataset.folder = folder;
@@ -962,13 +1141,13 @@ document.addEventListener('DOMContentLoaded', () => {
             currentPlaylist = currentPlaylist.filter(s => s && isTrghyCategory(getSongCategoriesForUI(s)));
             playlistHeadingEl.textContent = isMobile ? 'trghy' : 'Danh Sách Bài Hát trghy';
         } else if (currentTab === 'cooking') {
-            currentPlaylist = currentPlaylist.filter(s => s && (getSongCategoriesForUI(s).includes('cooking') || (s.folder || '').toLowerCase().includes('cooking')));
+            currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('cooking'));
             playlistHeadingEl.textContent = isMobile ? 'Nấu Ăn' : 'Danh Sách Bài Hát Nấu Ăn';
         } else if (currentTab === 'karaoke') {
             currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('karaoke'));
             playlistHeadingEl.textContent = isMobile ? 'Karaoke' : 'Danh Sách Bài Hát Karaoke';
         } else if (currentTab === 'sleep') {
-            currentPlaylist = currentPlaylist.filter(s => s && (getSongCategoriesForUI(s).includes('sleep') || (s.folder || '').toLowerCase().includes('sleep')));
+            currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('sleep'));
             playlistHeadingEl.textContent = isMobile ? 'Đi Ngủ' : 'Danh Sách Bài Hát Đi Ngủ';
         } else if (currentTab === 'recent') {
             const recentArr = Array.isArray(recentSongs) ? recentSongs : [];
@@ -980,7 +1159,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Filter by Folder
         if (currentFolder !== 'all') {
-            currentPlaylist = currentPlaylist.filter(s => s && s.folder === currentFolder);
+            const folderKey = normalizeFolderValue(currentFolder);
+            currentPlaylist = currentPlaylist.filter(song => normalizeFolderList(song?.folders)
+                .some(folder => normalizeFolderValue(folder) === folderKey));
         }
 
         // Filter & Autocomplete Search Query (Incremental Match)
@@ -1236,6 +1417,9 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRenderSongs();
         updatePlayerUI();
 
+        await loadManagementStats().catch(error => {
+            console.warn('[LocalSound] Could not refresh management stats after delete:', error);
+        });
         showToast(`Đã xoá bài hát "${song.title}" vĩnh viễn trên Appwrite.`, 'success');
     }
 
@@ -1543,7 +1727,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const song = getCurrentPlayingSong();
         if (song) {
             if (miniTitle) miniTitle.textContent = song.title;
-            if (miniArtist) miniArtist.textContent = song.folder || 'LocalSound';
+            if (miniArtist) miniArtist.textContent = normalizeFolderList(song.folders).join(' · ') || 'LocalSound';
         }
 
         if (isPlaying) {
@@ -1599,7 +1783,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 navigator.mediaSession.metadata = new MediaMetadata({
                     title: song.title || 'LocalSound',
-                    artist: song.folder || 'LocalSound Music',
+                    artist: normalizeFolderList(song.folders).join(' · ') || 'LocalSound Music',
                     album: 'LocalSound Cloud Music',
                     artwork: [
                         { src: `${ASSET_BASE_PATH}logo/logo.png`, sizes: '96x96', type: 'image/png' },
@@ -1860,7 +2044,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (authPasswordInput) authPasswordInput.value = '';
                     authModal?.classList.remove('active');
                     filterAndRenderSongs();
-                    showToast('Đăng nhập Admin thành công.', 'success');
+                    showToast('Đăng nhập thành công.', 'success');
                 } catch (err) {
                     setAuthError(err?.message || 'Đăng nhập thất bại.');
                 } finally {
@@ -1871,8 +2055,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (adminLogoutBtn) {
             adminLogoutBtn.addEventListener('click', async () => {
                 await logoutAdmin();
+                managementDataModal?.classList.remove('active');
                 filterAndRenderSongs();
                 showToast('Đã đăng xuất Admin.', 'info');
+            });
+        }
+        if (managementDataBtn && managementDataModal) {
+            managementDataBtn.addEventListener('click', () => {
+                if (!isAdmin) return;
+                managementDataModal.classList.add('active');
+                void loadManagementStats().catch(() => { });
+            });
+        }
+        if (closeManagementData && managementDataModal) {
+            closeManagementData.addEventListener('click', () => managementDataModal.classList.remove('active'));
+        }
+        if (managementRefreshBtn) {
+            managementRefreshBtn.addEventListener('click', () => {
+                if (!isAdmin) return;
+                void loadManagementStats().catch(() => { });
             });
         }
         if (adminUploadBtn && uploadPlaceholderModal) {
@@ -1906,6 +2107,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     setUploadStatus('Upload thành công.', 'success');
                     uploadPlaceholderModal?.classList.remove('active');
                     await fetchSongs();
+                    await loadManagementStats().catch(error => {
+                        console.warn('[LocalSound] Could not refresh management stats after upload:', error);
+                    });
                     showToast('Upload thành công.', 'success');
                 } catch (error) {
                     console.error('[LocalSound] Cloud upload failed:', error);
@@ -2169,7 +2373,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!s || !s.title) return false;
                 const titleLower = s.title.toLowerCase();
                 const titleNorm = removeAccents(s.title);
-                const folderNorm = removeAccents(s.folder || '');
+                const folderNorm = removeAccents(normalizeFolderList(s.folders).join(' '));
                 return titleLower.includes(rawQ) || titleNorm.includes(normQ) || folderNorm.includes(normQ);
             });
 
@@ -2191,7 +2395,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="search-song-icon">🎵</span>
                         <div class="search-song-info">
                             <span class="search-song-title">${displayTitle}</span>
-                            <span class="search-song-folder">${escapeHtml(song.folder || 'Tất cả')}</span>
+                            <span class="search-song-folder">${escapeHtml(normalizeFolderList(song.folders).join(' · ') || 'Tất cả')}</span>
                         </div>
                     `;
 
@@ -2345,7 +2549,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (shortcutHelpBtn && shortcutModal) shortcutHelpBtn.addEventListener('click', () => shortcutModal.classList.add('active'));
         if (closeShortcutBtn && shortcutModal) closeShortcutBtn.addEventListener('click', () => shortcutModal.classList.remove('active'));
 
-        [eqModal, timerModal, shortcutModal].forEach(modal => {
+        [eqModal, timerModal, shortcutModal, managementDataModal].forEach(modal => {
             if (modal) {
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) modal.classList.remove('active');
