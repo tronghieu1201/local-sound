@@ -373,14 +373,6 @@ async function submitNote({ tablesDB, config, runtimeUserId, hasExecutionKey, pa
             }
         }
 
-        log('PUBLIC_SUBMIT_V8_CREATE_START');
-        log(JSON.stringify({
-            tag: 'submit-note-create-start',
-            databaseId: config.LOCAL_SOUND_DATABASE_ID,
-            tableId: config.LOCAL_SOUND_REQUESTS_TABLE_ID,
-            hasExecutionKey,
-            guest: !runtimeUserId
-        }));
         let row;
         try {
             row = await tablesDB.createRow({
@@ -397,7 +389,7 @@ async function submitNote({ tablesDB, config, runtimeUserId, hasExecutionKey, pa
             });
         } catch (err) {
             error(JSON.stringify({
-                tag: 'PUBLIC_SUBMIT_V8_CREATE_ERROR',
+                tag: 'submit-note-create-error',
                 message: err?.message ?? String(err),
                 code: err?.code ?? null,
                 type: err?.type ?? null,
@@ -409,13 +401,6 @@ async function submitNote({ tablesDB, config, runtimeUserId, hasExecutionKey, pa
             throw err;
         }
 
-        log('PUBLIC_SUBMIT_V8_SUCCESS');
-        log(JSON.stringify({
-            tag: 'submit-note-success',
-            requestId: row.$id,
-            rowId: row.$id,
-            guest: !runtimeUserId
-        }));
         return {
             status: 200,
             body: {
@@ -437,13 +422,6 @@ async function submitNote({ tablesDB, config, runtimeUserId, hasExecutionKey, pa
 
 async function handleSubmitNote({ req, res, body, corsHeaders, log, error }) {
     const runtimeUserId = getHeader(req?.headers, 'x-appwrite-user-id');
-    log(JSON.stringify({
-        tag: 'submit-note-auth',
-        action: 'submit-note',
-        runtimeUserId: runtimeUserId || null,
-        hasUser: Boolean(runtimeUserId),
-        guest: !runtimeUserId
-    }));
 
     const { config } = getConfig();
     const submitConfigKeys = [
@@ -455,7 +433,7 @@ async function handleSubmitNote({ req, res, body, corsHeaders, log, error }) {
     ];
     const missingSubmitKeys = submitConfigKeys.filter((key) => !config[key]);
     if (missingSubmitKeys.length > 0) {
-        error(JSON.stringify({ tag: 'PUBLIC_SUBMIT_V8_ERROR', stage: 'configuration', missingKeys: missingSubmitKeys }));
+        error(JSON.stringify({ tag: 'submit-note-error', stage: 'configuration', missingKeys: missingSubmitKeys }));
         return res.json({
             success: false,
             error: `Request feature is not configured: ${missingSubmitKeys.join(', ')}.`
@@ -465,13 +443,9 @@ async function handleSubmitNote({ req, res, body, corsHeaders, log, error }) {
     const executionKey = getHeader(req?.headers, 'x-appwrite-key');
     const dynamicKey = executionKey || process.env.APPWRITE_FUNCTION_API_KEY?.trim();
     if (!dynamicKey) {
-        error(JSON.stringify({ tag: 'PUBLIC_SUBMIT_V8_ERROR', stage: 'api-key', hasExecutionKey: false }));
+        error(JSON.stringify({ tag: 'submit-note-error', stage: 'api-key', hasExecutionKey: false }));
         return res.json({ success: false, error: 'Missing Appwrite function API key.' }, 500, corsHeaders);
     }
-    log(JSON.stringify({
-        tag: 'submit-note-api-key',
-        source: executionKey ? 'execution-header' : 'function-environment'
-    }));
 
     try {
         const client = new Client()
@@ -485,7 +459,7 @@ async function handleSubmitNote({ req, res, body, corsHeaders, log, error }) {
         return res.json(result.body, result.status, corsHeaders);
     } catch (err) {
         error(JSON.stringify({
-            tag: 'PUBLIC_SUBMIT_V8_ERROR',
+            tag: 'submit-note-error',
             stage: 'submit-note',
             message: err?.message ?? String(err),
             code: err?.code ?? null,
@@ -500,14 +474,11 @@ async function handleSubmitNote({ req, res, body, corsHeaders, log, error }) {
 }
 
 export default async ({ req, res, log, error }) => {
-    log('FUNCTION_DEBUG_V9_BODY_PARSER');
-
     const method = String(req?.method || '').toUpperCase();
     const corsHeaders = getCorsHeaders(req);
     // A browser's JSON POST to the public Function Domain requires a preflight.
     // OPTIONS does not execute any action; admin POSTs still pass the auth guard below.
     if (method === 'OPTIONS') {
-        log('PUBLIC_SUBMIT_V7_OPTIONS');
         return res.text('', 204, corsHeaders);
     }
     if (method !== 'POST') {
@@ -523,31 +494,8 @@ export default async ({ req, res, log, error }) => {
         ? 'delete-song'
         : requestedAction || (rowId ? 'delete-song' : '');
 
-    let bodyTextLength = null;
-    try {
-        const bodyText = req?.bodyText;
-        if (typeof bodyText === 'string') bodyTextLength = bodyText.length;
-    } catch {
-        // Debug logging must not affect request routing.
-    }
-    log(JSON.stringify({
-        tag: 'request-body-debug-v9',
-        method: req?.method,
-        action,
-        bodyKeys: Object.keys(body),
-        bodyTextLength
-    }));
-
-    log(JSON.stringify({
-        tag: 'incoming-action',
-        action,
-        requestId: body?.requestId ?? null,
-        bodyKeys: Object.keys(body || {})
-    }));
-
     // The only public action must return before any authentication or admin guard.
     if (action === 'submit-note') {
-        log('PUBLIC_SUBMIT_V8_ENTRY');
         return await handleSubmitNote({ req, res, body, corsHeaders, log, error });
     }
 
