@@ -19,9 +19,16 @@ document.addEventListener('DOMContentLoaded', () => {
         adminUserId: '6ab3f33c001d0e271d16'
     });
     const APPWRITE_PAGE_SIZE = 100;
-    const ASSET_BASE_PATH = window.location.pathname.includes('/src/') ? '../assets/' : 'assets/';
-
-    console.info('[LocalSound] Cloud-only mode enabled: Appwrite Auth + TablesDB + Storage');
+    const FREE_CLOUD_QUOTA_BYTES = 2 * 1024 * 1024 * 1024;
+    const ASSET_BASE_PATH = 'assets/';
+    const NOTE_ACTIONS = Object.freeze({
+        SUBMIT: 'submit-note',
+        LIST: 'list-notes',
+        UPDATE: 'update-note',
+        DELETE: 'delete-note'
+    });
+    const PUBLIC_NOTE_FUNCTION_DOMAIN = 'https://localsou.appwrite.network/';
+    const PUBLIC_FUNCTION_ACTIONS = new Set([NOTE_ACTIONS.SUBMIT]);
 
     // --- State Variables ---
     let allSongs = [];
@@ -32,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let appwriteServices = null;
     let currentAuthUser = null;
     let isAdmin = false;
+    let isNotesAdmin = false;
 
     function getCurrentPlayingSong() {
         if (currentPlayingSong) return currentPlayingSong;
@@ -60,9 +68,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) { }
     let mobileTab = savedMobileTab;
 
-    // Note page state
-    let noteText = '';
-    let noteList = [];
+    // The sender sees only notes sent during this page lifetime.
+    let transientSentNotes = [];
+    let submittingNote = false;
+    let adminSongRequests = [];
+    let adminNoteFilter = 'new';
 
     let recentSongs = [];
     try {
@@ -128,7 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const clearSearchBtn = document.getElementById('clear-search');
     const sortSelect = document.getElementById('sort-select');
-    const folderListEl = document.getElementById('folder-list');
+    const adminSidebarSection = document.getElementById('admin-sidebar-section');
+    const settingsSidebarBtn = document.getElementById('settings-sidebar-btn');
     const managementDataBtn = document.getElementById('management-data-btn');
 
     // Visualizer Canvas
@@ -154,6 +165,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminSession = document.getElementById('admin-session');
     const adminUserLabel = document.getElementById('admin-user-label');
     const adminUploadBtn = document.getElementById('admin-upload-btn');
+    const adminNotesBtn = document.getElementById('admin-notes-btn');
+    const adminNotesCount = document.getElementById('admin-notes-count');
     const adminLogoutBtn = document.getElementById('admin-logout-btn');
     const uploadPlaceholderModal = document.getElementById('upload-placeholder-modal');
     const closeUploadPlaceholder = document.getElementById('close-upload-placeholder');
@@ -165,15 +178,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const managementDataModal = document.getElementById('management-data-modal');
     const closeManagementData = document.getElementById('close-management-data');
     const managementRefreshBtn = document.getElementById('management-refresh-btn');
-    const managementStorageUsed = document.getElementById('management-storage-used');
-    const managementStorageLimit = document.getElementById('management-storage-limit');
+    const managementCloudPlan = document.getElementById('management-cloud-plan');
+    const managementCloudSongCount = document.getElementById('management-cloud-song-count');
+    const managementCloudStorageFileCount = document.getElementById('management-cloud-storage-file-count');
+    const managementCloudOrphanCount = document.getElementById('management-cloud-orphan-count');
+    const managementCloudStorage = document.getElementById('management-cloud-storage');
+    const managementOrphanCleanupBtn = document.getElementById('management-orphan-cleanup-btn');
     const managementStorageProgress = document.getElementById('management-storage-progress');
     const managementStorageRemaining = document.getElementById('management-storage-remaining');
     const managementStoragePercent = document.getElementById('management-storage-percent');
-    const managementSongCount = document.getElementById('management-song-count');
-    const managementFileCount = document.getElementById('management-file-count');
-    const managementTotalSize = document.getElementById('management-total-size');
+    const managementLibrarySongCount = document.getElementById('management-library-song-count');
+    const managementLibraryFolderCount = document.getElementById('management-library-folder-count');
+    const managementLibrarySize = document.getElementById('management-library-size');
     const managementStatsStatus = document.getElementById('management-stats-status');
+    const songRequestForm = document.getElementById('song-request-form');
+    const songRequestMessage = document.getElementById('song-request-message');
+    const songRequestLimit = document.getElementById('song-request-limit');
+    const submitSongRequestBtn = document.getElementById('submit-song-request');
+    const songRequestStatus = document.getElementById('song-request-status');
+    const songRequestList = document.getElementById('song-request-list');
+    const noteRequestAuthStatus = document.getElementById('note-request-auth-status');
+    const adminNotesModal = document.getElementById('admin-notes-modal');
+    const closeAdminNotes = document.getElementById('close-admin-notes');
+    const adminNotesList = document.getElementById('admin-notes-list');
+    const adminNotesStatus = document.getElementById('admin-notes-status');
 
     // Power Saver & Screen WakeLock State
     let isPowerSaverON = false;
@@ -186,9 +214,9 @@ document.addEventListener('DOMContentLoaded', () => {
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
         setupEventListeners();
+        initSongRequestLogic();
         await initializeAuth();
         initBatteryAPI();
-        initNotesLogic();
         await fetchSongs();
     }
 
@@ -425,15 +453,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (volumeFill) volumeFill.style.width = `${v * 100}%`;
             }
         }
-        if (typeof data.noteText === 'string') {
-            noteText = data.noteText;
-            const editor = document.getElementById('note-text-editor');
-            if (editor) editor.value = noteText;
-        }
-        if (Array.isArray(data.noteList)) {
-            noteList = data.noteList;
-            renderChecklist();
-        }
     }
 
     // --- Browser Preference Persistence ---
@@ -454,9 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 recent: recentSongs,
                 volume: audio.volume,
                 loopMode: loopMode,
-                powerSaver: isPowerSaverON,
-                noteText: noteText,
-                noteList: noteList
+                powerSaver: isPowerSaverON
             };
 
             // Save browser preferences immediately for the next session
@@ -499,14 +516,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function updateAdminUI() {
         if (authControls) authControls.classList.remove('hidden');
-        if (authLoginBtn) authLoginBtn.classList.toggle('hidden', isAdmin);
-        if (adminSession) adminSession.classList.toggle('hidden', !isAdmin);
+        if (authLoginBtn) authLoginBtn.classList.toggle('hidden', isAdmin || isNotesAdmin);
+        if (adminSession) adminSession.classList.toggle('hidden', !(isAdmin || isNotesAdmin));
+        if (adminSidebarSection) adminSidebarSection.classList.toggle('hidden', !(isAdmin || isNotesAdmin));
+        if (settingsSidebarBtn) settingsSidebarBtn.classList.toggle('hidden', !(isAdmin || isNotesAdmin));
         if (managementDataBtn) managementDataBtn.classList.toggle('hidden', !isAdmin);
+        if (adminNotesBtn) adminNotesBtn.classList.toggle('hidden', !(isAdmin || isNotesAdmin));
+        if (adminUploadBtn) adminUploadBtn.classList.toggle('hidden', !isAdmin);
         if (adminUserLabel) {
-            adminUserLabel.textContent = isAdmin
-                ? (currentAuthUser?.email || currentAuthUser?.$id || 'Admin')
-                : '';
+            adminUserLabel.textContent = currentAuthUser?.email || currentAuthUser?.$id || '';
         }
+        if (noteRequestAuthStatus) {
+            noteRequestAuthStatus.textContent = currentAuthUser
+                ? `Đang gửi với tài khoản ${currentAuthUser.email || currentAuthUser.$id}`
+                : 'Bạn có thể gửi yêu cầu mà không cần đăng nhập.';
+        }
+        if (submitSongRequestBtn) submitSongRequestBtn.disabled = submittingNote;
     }
 
     function setAuthError(message) {
@@ -527,36 +552,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const user = await account.get();
             currentAuthUser = user;
             isAdmin = Boolean(APPWRITE_CONFIG.adminUserId && user?.$id === APPWRITE_CONFIG.adminUserId);
-            if (!isAdmin) {
-                currentAuthUser = null;
-            }
         } catch (err) {
             currentAuthUser = null;
             isAdmin = false;
-            if (err?.code !== 401) {
+            isNotesAdmin = false;
+            if (Number(err?.code) !== 401) {
                 console.warn('[LocalSound] Không kiểm tra được Appwrite session:', err);
             }
         }
         updateAdminUI();
+        if (currentAuthUser) {
+            void refreshAdminNoteCount();
+        }
     }
 
     async function loginAdmin(email, password) {
-        if (!APPWRITE_CONFIG.adminUserId) {
-            throw new Error('Chưa cấu hình Admin User ID trong APPWRITE_CONFIG.adminUserId.');
-        }
-
         const { account } = createAppwriteServices();
         await account.createEmailPasswordSession({ email, password });
         const user = await account.get();
 
-        if (user?.$id !== APPWRITE_CONFIG.adminUserId) {
-            await account.deleteSession({ sessionId: 'current' }).catch(() => { });
-            throw new Error('Tài khoản này không có quyền Admin.');
-        }
-
         currentAuthUser = user;
-        isAdmin = true;
+        isAdmin = Boolean(APPWRITE_CONFIG.adminUserId && user?.$id === APPWRITE_CONFIG.adminUserId);
         updateAdminUI();
+        void refreshAdminNoteCount();
     }
 
     async function logoutAdmin() {
@@ -570,6 +588,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         currentAuthUser = null;
         isAdmin = false;
+        isNotesAdmin = false;
+        adminSongRequests = [];
         updateAdminUI();
     }
 
@@ -688,20 +708,41 @@ document.addEventListener('DOMContentLoaded', () => {
             const page = Array.isArray(response?.rows) ? response.rows : [];
             rows.push(...page);
             offset += page.length;
-            if (page.length === 0 || page.length < APPWRITE_PAGE_SIZE) break;
-            if (Number.isFinite(response?.total) && rows.length >= response.total) break;
+
+            const rawTotal = response?.total;
+            const total = rawTotal === undefined || rawTotal === null || String(rawTotal).trim() === ''
+                ? null
+                : Number(rawTotal);
+            const hasTotal = Number.isFinite(total) && total >= 0;
+            if (hasTotal && rows.length >= total) break;
+            if (page.length === 0) break;
+            if (page.length < APPWRITE_PAGE_SIZE && !hasTotal) break;
         }
 
         const songs = rows.map((row) => mapAppwriteRow(row, storage)).filter(Boolean);
         songs.sort((a, b) => (a.title || '').localeCompare(b.title || '', 'vi', { sensitivity: 'base' }));
-        console.info(`[LocalSound] Appwrite loaded ${songs.length} songs from ${rows.length} rows.`);
         return songs;
     }
 
     async function executeSongAdminFunction(payload, fallbackError) {
-        if (!isAdmin) throw new Error('Bạn cần đăng nhập Admin để thực hiện thao tác này.');
+        const action = String(payload?.action || 'unknown');
+        const requireAuth = !PUBLIC_FUNCTION_ACTIONS.has(action);
+        if (requireAuth && !currentAuthUser) throw new Error('Bạn cần đăng nhập để thực hiện thao tác này.');
 
-        const { functions, ExecutionMethod } = createAppwriteServices();
+        const { account, functions, ExecutionMethod } = createAppwriteServices();
+        if (requireAuth) {
+            try {
+                // Verify the live session on the same Client that owns Functions.
+                currentAuthUser = await account.get();
+            } catch (error) {
+                currentAuthUser = null;
+                isAdmin = false;
+                isNotesAdmin = false;
+                updateAdminUI();
+                throw new Error('Phiên đăng nhập Appwrite đã hết hạn. Vui lòng đăng nhập lại.');
+            }
+        }
+
         const execution = await functions.createExecution({
             functionId: APPWRITE_CONFIG.functionId,
             body: JSON.stringify(payload),
@@ -711,33 +752,361 @@ document.addEventListener('DOMContentLoaded', () => {
             headers: { 'content-type': 'application/json' }
         });
 
-        const status = Number(execution?.responseStatusCode || 0);
-        let responseBody = {};
-        try {
-            responseBody = execution?.responseBody ? JSON.parse(execution.responseBody) : {};
-        } catch {
-            responseBody = {};
+        if (execution?.status !== 'completed') {
+            throw new Error(`${action === 'stats' ? 'Stats' : 'Function'} execution status: ${execution?.status || 'unknown'}`);
         }
 
-        if (execution?.status === 'failed' || (status && (status < 200 || status >= 300)) || responseBody.success !== true) {
-            throw new Error(responseBody.error || execution?.errors || fallbackError);
+        const responseStatusCode = Number(execution?.responseStatusCode);
+        if (!Number.isFinite(responseStatusCode) || responseStatusCode < 200 || responseStatusCode >= 300) {
+            if (action === NOTE_ACTIONS.SUBMIT) {
+                let responseMessage = '';
+                try {
+                    responseMessage = JSON.parse(execution?.responseBody || '{}')?.error || '';
+                } catch {}
+                if (responseMessage) throw new Error(responseMessage);
+            }
+            throw new Error(
+                `${action === 'stats' ? 'Stats' : 'Function'} HTTP ${execution?.responseStatusCode}: ${execution?.responseBody || ''}`
+            );
+        }
+
+        let responseBody;
+        try {
+            responseBody = JSON.parse(execution?.responseBody || '{}');
+        } catch (error) {
+            throw new Error(
+                `${action === 'stats' ? 'Invalid stats' : 'Invalid Function'} JSON: ${execution?.responseBody || ''}`
+            );
+        }
+
+        if (responseBody?.success !== true) {
+            throw new Error(responseBody?.error || execution?.errors || fallbackError);
         }
         return responseBody;
     }
 
+    async function submitPublicNote(message) {
+        // The guest request does not use the Appwrite Web SDK or send a session/JWT.
+        const response = await fetch(PUBLIC_NOTE_FUNCTION_DOMAIN, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            credentials: 'omit',
+            body: JSON.stringify({ action: NOTE_ACTIONS.SUBMIT, message })
+        });
+        const result = await response.json().catch(() => null);
+        if (!response.ok) {
+            throw new Error(result?.error || `Function HTTP ${response.status}: ${response.statusText || 'Request failed'}`);
+        }
+        if (result?.success !== true) {
+            throw new Error(result?.error || 'Không thể gửi yêu cầu bài hát.');
+        }
+        return result;
+    }
+
     async function executeCloudDelete(rowId) {
         return executeSongAdminFunction(
-            { action: 'delete', rowId },
+            { action: 'delete-song', rowId },
             'Appwrite Function xoá bài hát thất bại.'
         );
     }
 
+    async function executeOrphanCleanup() {
+        return executeSongAdminFunction(
+            { action: 'cleanup-orphans' },
+            'Appwrite Function dọn file mồ côi thất bại.'
+        );
+    }
+
+    const SONG_REQUEST_STATUS_LABELS = Object.freeze({
+        new: 'Mới',
+        seen: 'Đã xem',
+        done: 'Hoàn thành',
+        rejected: 'Từ chối'
+    });
+
+    function setSongRequestStatus(message, isError = false) {
+        if (!songRequestStatus) return;
+        songRequestStatus.textContent = message || '';
+        songRequestStatus.classList.toggle('hidden', !message);
+        songRequestStatus.classList.toggle('is-error', isError);
+    }
+
+    function setAdminNotesStatus(message, isError = false) {
+        if (!adminNotesStatus) return;
+        adminNotesStatus.textContent = message || '';
+        adminNotesStatus.classList.toggle('hidden', !message);
+        adminNotesStatus.classList.toggle('is-error', isError);
+    }
+
+    function getSongRequestStatusLabel(status) {
+        return SONG_REQUEST_STATUS_LABELS[String(status || '').toLowerCase()] || 'Mới';
+    }
+
+    function formatSongRequestDate(value) {
+        if (!value) return 'Không rõ thời gian';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'Không rõ thời gian';
+        return date.toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
+    }
+
+    function sortSongRequests(requests) {
+        return [...requests].sort((a, b) => {
+            const aTime = new Date(a?.$createdAt || 0).getTime();
+            const bTime = new Date(b?.$createdAt || 0).getTime();
+            return bTime - aTime;
+        });
+    }
+
+    function renderTransientNotes() {
+        if (!songRequestList) return;
+        songRequestList.replaceChildren();
+
+        if (transientSentNotes.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'song-request-empty';
+            empty.textContent = 'Bạn chưa gửi yêu cầu nào.';
+            songRequestList.appendChild(empty);
+            return;
+        }
+
+        sortSongRequests(transientSentNotes).forEach((request) => {
+            const item = document.createElement('article');
+            item.className = 'song-request-item';
+
+            const header = document.createElement('div');
+            header.className = 'song-request-item-header';
+            const date = document.createElement('time');
+            date.dateTime = request.$createdAt || '';
+            date.textContent = formatSongRequestDate(request.$createdAt);
+            const status = document.createElement('span');
+            status.className = `song-request-status status-${request.status || 'new'}`;
+            status.textContent = getSongRequestStatusLabel(request.status);
+            header.append(date, status);
+
+            const message = document.createElement('p');
+            message.className = 'song-request-message';
+            message.textContent = request.message || '';
+            item.append(header, message);
+
+            songRequestList.appendChild(item);
+        });
+    }
+
+    function renderAdminNotes() {
+        if (!adminNotesList) return;
+        adminNotesList.replaceChildren();
+
+        const requests = sortSongRequests(adminSongRequests).filter((request) => {
+            return adminNoteFilter === 'all' || String(request.status || 'new') === adminNoteFilter;
+        });
+        if (requests.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = 'song-request-empty';
+            empty.textContent = 'Không có note trong bộ lọc này.';
+            adminNotesList.appendChild(empty);
+            return;
+        }
+
+        requests.forEach((request) => {
+            const item = document.createElement('article');
+            item.className = 'admin-note-item';
+
+            const header = document.createElement('div');
+            header.className = 'admin-note-item-header';
+            const user = document.createElement('strong');
+            user.textContent = request.userName || request.userEmail || request.userId || 'Người dùng';
+            const time = document.createElement('time');
+            time.textContent = formatSongRequestDate(request.$createdAt);
+            header.append(user, time);
+
+            const contact = document.createElement('small');
+            contact.textContent = request.userEmail || 'Không có email';
+            const message = document.createElement('p');
+            message.className = 'song-request-message';
+            message.textContent = request.message || '';
+            const reply = document.createElement('textarea');
+            reply.className = 'admin-note-reply';
+            reply.maxLength = 2000;
+            reply.placeholder = 'Phản hồi (không bắt buộc)';
+            reply.value = request.adminReply || '';
+
+            const actions = document.createElement('div');
+            actions.className = 'admin-note-actions';
+            ['seen', 'done', 'rejected'].forEach((nextStatus) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn-note-action';
+                button.textContent = getSongRequestStatusLabel(nextStatus);
+                button.addEventListener('click', async () => {
+                    button.disabled = true;
+                    try {
+                        const result = await updateAdminSongRequest(request.$id, nextStatus, reply.value);
+                        const index = adminSongRequests.findIndex((entry) => entry.$id === request.$id);
+                        if (index >= 0 && result?.request) adminSongRequests[index] = result.request;
+                        renderAdminNotes();
+                        await refreshAdminNoteCount();
+                    } catch (error) {
+                        setAdminNotesStatus(error?.message || 'Không thể cập nhật note.', true);
+                    } finally {
+                        button.disabled = false;
+                    }
+                });
+            actions.appendChild(button);
+            });
+
+            const deleteButton = document.createElement('button');
+            deleteButton.type = 'button';
+            deleteButton.className = 'btn-note-action danger';
+            deleteButton.textContent = 'Xóa';
+            deleteButton.addEventListener('click', () => {
+                if (!isAdmin && !isNotesAdmin) return;
+
+                showConfirmModal({
+                    title: 'Xóa yêu cầu',
+                    message: 'Bạn có chắc muốn xóa yêu cầu này?',
+                    confirmText: 'Xóa',
+                    isDanger: true,
+                    onConfirm: async () => {
+                        deleteButton.disabled = true;
+                        try {
+                            await deleteAdminSongRequest(request.$id);
+                            adminSongRequests = adminSongRequests.filter((entry) => entry.$id !== request.$id);
+                            renderAdminNotes();
+                            await refreshAdminNoteCount();
+                            showToast('Đã xóa yêu cầu', 'success');
+                        } catch (error) {
+                            console.error('[LocalSound] Could not delete admin note:', error);
+                            setAdminNotesStatus(error?.message || 'Không thể xóa yêu cầu.', true);
+                            deleteButton.disabled = false;
+                        }
+                    }
+                });
+            });
+            actions.appendChild(deleteButton);
+
+            const status = document.createElement('span');
+            status.className = `song-request-status status-${request.status || 'new'}`;
+            status.textContent = getSongRequestStatusLabel(request.status);
+            item.append(header, contact, message, status, reply, actions);
+            adminNotesList.appendChild(item);
+        });
+    }
+
+    async function refreshAdminNoteCount() {
+        if (!currentAuthUser || !adminNotesCount) return;
+        try {
+            const result = await executeSongAdminFunction(
+                { action: NOTE_ACTIONS.LIST },
+                'Không thể tải số note mới.'
+            );
+            isNotesAdmin = true;
+            updateAdminUI();
+            const requests = Array.isArray(result?.requests) ? result.requests : [];
+            const newNoteCount = requests.filter((request) => request.status === 'new').length;
+            adminNotesCount.textContent = newNoteCount > 0 ? `(${newNoteCount})` : '';
+            adminNotesCount.classList.toggle('hidden', newNoteCount === 0);
+        } catch (error) {
+            console.warn('[LocalSound] Could not refresh admin note count:', error);
+            isNotesAdmin = false;
+            updateAdminUI();
+            adminNotesCount.textContent = '';
+            adminNotesCount.classList.add('hidden');
+        }
+    }
+
+    async function loadAdminNotes() {
+        if (!isAdmin && !isNotesAdmin) return;
+        setAdminNotesStatus('Đang tải note...');
+        try {
+            const result = await executeSongAdminFunction(
+                { action: NOTE_ACTIONS.LIST },
+                'Không thể tải danh sách note.'
+            );
+            adminSongRequests = Array.isArray(result?.requests) ? result.requests : [];
+            const newNoteCount = adminSongRequests.filter((request) => request.status === 'new').length;
+            adminNotesCount.textContent = newNoteCount > 0 ? `(${newNoteCount})` : '';
+            adminNotesCount.classList.toggle('hidden', newNoteCount === 0);
+            renderAdminNotes();
+            setAdminNotesStatus('Đã cập nhật.');
+        } catch (error) {
+            console.error('[LocalSound] Could not load admin notes:', error);
+            setAdminNotesStatus('Không lấy được dữ liệu.', true);
+        }
+    }
+
+    async function updateAdminSongRequest(requestId, status, adminReply) {
+        return executeSongAdminFunction(
+            { action: NOTE_ACTIONS.UPDATE, requestId, status, adminReply: String(adminReply || '').trim() },
+            'Không thể cập nhật note.'
+        );
+    }
+
+    async function deleteAdminSongRequest(requestId) {
+        return executeSongAdminFunction(
+            { action: NOTE_ACTIONS.DELETE, requestId },
+            'Không thể xóa yêu cầu.'
+        );
+    }
+
+    function initSongRequestLogic() {
+        const updateLimit = () => {
+            if (songRequestLimit) songRequestLimit.textContent = `${songRequestMessage?.value.length || 0}/2000`;
+        };
+        songRequestMessage?.addEventListener('input', updateLimit);
+        updateLimit();
+        renderTransientNotes();
+
+        songRequestForm?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (submittingNote) return;
+
+            const message = String(songRequestMessage?.value || '').trim();
+            if (!message) {
+                setSongRequestStatus('Vui lòng nhập nội dung yêu cầu.', true);
+                return;
+            }
+            if (message.length > 2000) {
+                setSongRequestStatus('Nội dung tối đa 2000 ký tự.', true);
+                return;
+            }
+
+            submittingNote = true;
+            if (submitSongRequestBtn) submitSongRequestBtn.disabled = true;
+            setSongRequestStatus('Đang gửi...');
+            try {
+                const result = currentAuthUser
+                    ? await executeSongAdminFunction(
+                        { action: NOTE_ACTIONS.SUBMIT, message },
+                        'Không thể gửi yêu cầu bài hát.'
+                    )
+                    : await submitPublicNote(message);
+                transientSentNotes.unshift({
+                    message: result?.request?.message || message,
+                    $createdAt: result?.request?.createdAt || new Date().toISOString(),
+                    status: 'new'
+                });
+                renderTransientNotes();
+                if (songRequestMessage) songRequestMessage.value = '';
+                updateLimit();
+                setSongRequestStatus('Đã gửi yêu cầu.', false);
+                showToast('Đã gửi yêu cầu bài hát.', 'success');
+            } catch (error) {
+                console.error('[LocalSound] Song request submission failed:', error);
+                setSongRequestStatus(error?.message || 'Không thể gửi yêu cầu bài hát.', true);
+            } finally {
+                submittingNote = false;
+                if (submitSongRequestBtn) submitSongRequestBtn.disabled = false;
+            }
+        });
+    }
+
     async function fetchCloudStats() {
         try {
-            return await executeSongAdminFunction(
+            const stats = await executeSongAdminFunction(
                 { action: 'stats' },
                 'Appwrite Function thống kê dữ liệu thất bại.'
             );
+            return validateCloudStats(stats);
         } catch (error) {
             if (/rowId is required/i.test(error?.message || '')) {
                 throw new Error('Function song-admin trên Appwrite chưa được deploy bản hỗ trợ action stats.');
@@ -746,11 +1115,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function validateCloudStats(stats) {
+        if (
+            !stats ||
+            stats.success !== true ||
+            !Number.isFinite(Number(stats.databaseSongCount)) ||
+            !Number.isFinite(Number(stats.storageFileCount)) ||
+            !Number.isFinite(Number(stats.orphanFileCount)) ||
+            !Number.isFinite(Number(stats.storageUsedBytes))
+        ) {
+            console.error('[LocalSound] Invalid cloud stats:', stats);
+            throw new Error('Cloud stats response is incomplete.');
+        }
+
+        return stats;
+    }
+
     function formatManagementBytes(bytes) {
         const value = Number(bytes);
-        if (!Number.isFinite(value) || value < 0) return '0 MB';
-        if (value >= 1024 * 1024 * 1024) return `${(value / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-        return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+        if (!Number.isFinite(value) || value < 0) return '0 B';
+        if (value < 1024) return `${Math.round(value)} B`;
+        if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+        if (value < 1024 * 1024 * 1024) return `${(value / (1024 * 1024)).toFixed(2)} MB`;
+        return `${(value / (1024 * 1024 * 1024)).toFixed(2)} GB`;
     }
 
     function setManagementStatsStatus(message, isError = false) {
@@ -760,59 +1147,178 @@ document.addEventListener('DOMContentLoaded', () => {
         managementStatsStatus.style.color = isError ? '#fca5a5' : 'var(--text-muted)';
     }
 
-    function renderManagementStats(stats) {
-        const usedBytes = Number(stats?.storage?.usedBytes) || 0;
-        const fileCount = Number(stats?.storage?.fileCount) || 0;
-        const songCount = Number(stats?.database?.songCount) || 0;
-        const quotaBytes = Number.isFinite(Number(stats?.quotaBytes)) && Number(stats?.quotaBytes) > 0
-            ? Number(stats.quotaBytes)
-            : null;
-        const remainingBytes = quotaBytes === null
-            ? null
-            : Math.max(Number(stats?.remainingBytes) || 0, 0);
-        const usagePercent = quotaBytes === null
-            ? null
-            : Math.min(Math.max(Number(stats?.usagePercent) || 0, 0), 100);
+    function getRenderedFolderCount() {
+        const excludedFolderKeys = new Set([
+            normalizeFolderValue('all'),
+            normalizeFolderValue('Tất Cả Bài Hát'),
+            normalizeFolderValue('Ghi Chú'),
+            normalizeFolderValue('Vừa Nghe Gần Đây'),
+            normalizeFolderValue('Quản lý data')
+        ]);
 
-        if (managementStorageUsed) managementStorageUsed.textContent = `Đã dùng: ${formatManagementBytes(usedBytes)}`;
-        if (managementStorageLimit) {
-            managementStorageLimit.textContent = quotaBytes === null
-                ? 'Giới hạn: Chưa cấu hình'
-                : `Giới hạn: ${formatManagementBytes(quotaBytes)}`;
+        const folderKeys = new Set();
+        allSongs.forEach((song) => {
+            normalizeFolderList(song?.folders).forEach((folder) => {
+                const folderKey = normalizeFolderValue(folder);
+                if (folderKey && !excludedFolderKeys.has(folderKey)) folderKeys.add(folderKey);
+            });
+        });
+        return folderKeys.size;
+    }
+
+    function getLibraryStats() {
+        const totalAudioBytes = allSongs.reduce((total, song) => {
+            const audioSize = Number(song?.size);
+            return total + (Number.isFinite(audioSize) && audioSize > 0 ? audioSize : 0);
+        }, 0);
+
+        return {
+            songCount: allSongs.length,
+            folderCount: getRenderedFolderCount(),
+            totalAudioBytes
+        };
+    }
+
+    function renderLibraryStats() {
+        const stats = getLibraryStats();
+        if (managementLibrarySongCount) managementLibrarySongCount.textContent = String(stats.songCount);
+        if (managementLibraryFolderCount) managementLibraryFolderCount.textContent = String(stats.folderCount);
+        if (managementLibrarySize) managementLibrarySize.textContent = formatManagementBytes(stats.totalAudioBytes);
+        return stats;
+    }
+
+    function renderManagementStats(stats) {
+        const validatedStats = validateCloudStats(stats);
+        const plan = String(validatedStats.plan || 'Free');
+        const databaseSongCount = Number(validatedStats.databaseSongCount);
+        const storageFileCount = Number(validatedStats.storageFileCount);
+        const orphanFileCount = Number(validatedStats.orphanFileCount);
+        const storageUsedBytes = Number(validatedStats.storageUsedBytes);
+
+        const usagePercent = (storageUsedBytes / FREE_CLOUD_QUOTA_BYTES) * 100;
+        const remainingBytes = Math.max(FREE_CLOUD_QUOTA_BYTES - storageUsedBytes, 0);
+
+        if (managementCloudPlan) managementCloudPlan.textContent = plan;
+        if (managementCloudSongCount) managementCloudSongCount.textContent = String(databaseSongCount);
+        if (managementCloudStorageFileCount) managementCloudStorageFileCount.textContent = String(storageFileCount);
+        if (managementCloudOrphanCount) managementCloudOrphanCount.textContent = String(orphanFileCount);
+        if (managementCloudStorage) {
+            managementCloudStorage.textContent = `${formatManagementBytes(storageUsedBytes)} / ${formatManagementBytes(FREE_CLOUD_QUOTA_BYTES)}`;
         }
-        if (managementStorageRemaining) {
-            managementStorageRemaining.textContent = quotaBytes === null
-                ? 'Còn lại: Chưa cấu hình'
-                : `Còn lại: ${formatManagementBytes(remainingBytes)}`;
-        }
-        if (managementStoragePercent) {
-            managementStoragePercent.textContent = usagePercent === null
-                ? 'Sử dụng: Chưa cấu hình'
-                : `Sử dụng: ${usagePercent.toFixed(2)}%`;
+        if (managementStorageRemaining) managementStorageRemaining.textContent = formatManagementBytes(remainingBytes);
+        if (managementStoragePercent) managementStoragePercent.textContent = `${usagePercent.toFixed(2)}%`;
+        if (managementOrphanCleanupBtn) {
+            managementOrphanCleanupBtn.disabled = orphanFileCount === 0;
+            managementOrphanCleanupBtn.textContent = `Dọn file mồ côi (${orphanFileCount})`;
         }
         if (managementStorageProgress) {
-            managementStorageProgress.style.width = `${usagePercent === null ? 0 : usagePercent}%`;
-            managementStorageProgress.title = usagePercent === null ? 'Chưa cấu hình quota' : `${usagePercent.toFixed(2)}%`;
+            const progressPercent = Math.min(Math.max(usagePercent, 0), 100);
+            managementStorageProgress.style.width = `${progressPercent}%`;
+            managementStorageProgress.title = `${usagePercent.toFixed(2)}%`;
+            managementStorageProgress.setAttribute('aria-valuenow', String(progressPercent));
         }
-        if (managementSongCount) managementSongCount.textContent = `Tổng số bài: ${songCount}`;
-        if (managementFileCount) managementFileCount.textContent = `Tổng số file: ${fileCount}`;
-        if (managementTotalSize) managementTotalSize.textContent = `Dung lượng TB: ${formatManagementBytes(usedBytes)}`;
+
+    }
+
+    function setManagementLoading(isLoading) {
+        if (managementRefreshBtn) {
+            managementRefreshBtn.disabled = isLoading;
+            managementRefreshBtn.textContent = isLoading ? 'Đang tải...' : 'Làm mới';
+        }
+        if (isLoading && managementOrphanCleanupBtn) managementOrphanCleanupBtn.disabled = true;
+        if (managementDataModal) managementDataModal.setAttribute('aria-busy', String(isLoading));
+    }
+
+    function renderUnavailableCloudStats() {
+        if (managementCloudPlan) managementCloudPlan.textContent = 'Không lấy được dữ liệu';
+        if (managementCloudSongCount) managementCloudSongCount.textContent = 'Không lấy được dữ liệu';
+        if (managementCloudStorageFileCount) managementCloudStorageFileCount.textContent = 'Không lấy được dữ liệu';
+        if (managementCloudOrphanCount) managementCloudOrphanCount.textContent = 'Không lấy được dữ liệu';
+        if (managementCloudStorage) managementCloudStorage.textContent = 'Không lấy được dữ liệu';
+        if (managementStorageRemaining) managementStorageRemaining.textContent = 'Không lấy được dữ liệu';
+        if (managementStoragePercent) managementStoragePercent.textContent = 'Không lấy được dữ liệu';
+        if (managementOrphanCleanupBtn) {
+            managementOrphanCleanupBtn.disabled = true;
+            managementOrphanCleanupBtn.textContent = 'Dọn file mồ côi';
+        }
+        if (managementStorageProgress) {
+            managementStorageProgress.style.width = '0%';
+            managementStorageProgress.removeAttribute('aria-valuenow');
+        }
     }
 
     async function loadManagementStats() {
         if (!isAdmin) return;
 
-        setManagementStatsStatus('Đang tải thống kê...');
+        setManagementLoading(true);
+        setManagementStatsStatus('Đang tải dữ liệu...');
+        let cloudError = null;
+        let libraryError = null;
+
         try {
-            const stats = await fetchCloudStats();
-            renderManagementStats(stats);
+            const [cloudResult] = await Promise.allSettled([fetchCloudStats()]);
+            if (cloudResult.status === 'fulfilled') {
+                try {
+                    renderManagementStats(cloudResult.value);
+                } catch (error) {
+                    cloudError = error;
+                    renderUnavailableCloudStats();
+                }
+            } else {
+                cloudError = cloudResult.reason;
+                renderUnavailableCloudStats();
+            }
+
+            try {
+                renderLibraryStats();
+            } catch (error) {
+                libraryError = error;
+                if (managementLibrarySongCount) managementLibrarySongCount.textContent = 'Không lấy được dữ liệu';
+                if (managementLibraryFolderCount) managementLibraryFolderCount.textContent = 'Không lấy được dữ liệu';
+                if (managementLibrarySize) managementLibrarySize.textContent = 'Không lấy được dữ liệu';
+            }
+
+            if (cloudError || libraryError) {
+                console.error('[LocalSound] Management stats failed:', cloudError || libraryError);
+                setManagementStatsStatus('Không lấy được dữ liệu', true);
+                return null;
+            }
+
             setManagementStatsStatus('Đã cập nhật.');
-            return stats;
-        } catch (error) {
-            console.error('[LocalSound] Cloud stats failed:', error);
-            setManagementStatsStatus(`Không thể tải thống kê: ${error?.message || 'Không rõ nguyên nhân.'}`, true);
-            throw error;
+            return cloudResult.value;
+        } finally {
+            setManagementLoading(false);
         }
+    }
+
+    function cleanupOrphanFiles() {
+        if (!isAdmin || !managementOrphanCleanupBtn || managementOrphanCleanupBtn.disabled) return;
+
+        showConfirmModal({
+            title: 'Dọn file mồ côi',
+            message: 'Các file Storage không còn được row bài hát nào tham chiếu sẽ bị xoá vĩnh viễn. Bạn có muốn tiếp tục không?',
+            confirmText: 'Dọn file',
+            isDanger: true,
+            onConfirm: async () => {
+                managementOrphanCleanupBtn.disabled = true;
+                setManagementStatsStatus('Đang dọn file mồ côi...');
+
+                try {
+                    const result = await executeOrphanCleanup();
+                    await fetchSongs();
+                    await loadManagementStats();
+                    const deletedCount = Array.isArray(result?.deletedFileIds)
+                        ? result.deletedFileIds.length
+                        : 0;
+                    showToast(`Đã dọn ${deletedCount} file mồ côi.`, 'success');
+                } catch (error) {
+                    console.error('[LocalSound] Orphan cleanup failed:', error);
+                    setManagementStatsStatus(`Dọn file mồ côi thất bại: ${error?.message || 'Không rõ nguyên nhân.'}`, true);
+                    showToast(`Dọn file mồ côi thất bại: ${error?.message || 'Không rõ nguyên nhân.'}`, 'warning');
+                    managementOrphanCleanupBtn.disabled = false;
+                }
+            }
+        });
     }
 
     function setUploadStatus(message, type = '') {
@@ -865,13 +1371,17 @@ document.addEventListener('DOMContentLoaded', () => {
             throw new Error('Không thể tạo title từ tên file MP3.');
         }
 
-        const stats = await fetchCloudStats();
-        renderManagementStats(stats);
-        const quotaBytes = Number(stats?.quotaBytes);
-        if (Number.isFinite(quotaBytes) && quotaBytes > 0) {
-            const usedBytes = Number(stats?.storage?.usedBytes) || 0;
-            const remainingBytes = Math.max(quotaBytes - usedBytes, 0);
-            if (usedBytes + file.size > quotaBytes) {
+        let stats = null;
+        try {
+            stats = await fetchCloudStats();
+        } catch (error) {
+            console.warn('[LocalSound] Upload preflight stats unavailable; continuing upload:', error);
+        }
+
+        if (stats) {
+            const usedBytes = Number(stats.storageUsedBytes);
+            const remainingBytes = Math.max(FREE_CLOUD_QUOTA_BYTES - usedBytes, 0);
+            if (Number.isFinite(usedBytes) && usedBytes + file.size > FREE_CLOUD_QUOTA_BYTES) {
                 throw new Error(
                     `Không đủ dung lượng Storage. Còn lại: ${formatManagementBytes(remainingBytes)}. File này: ${formatManagementBytes(file.size)}.`
                 );
@@ -1081,6 +1591,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Folder Navigation ---
     function renderFolders() {
+        // Real folders are metadata for management statistics, not sidebar navigation.
+        return;
+        /*
         const folderMap = new Map();
         allSongs.forEach(song => {
             normalizeFolderList(song?.folders).forEach(folder => {
@@ -1116,6 +1629,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 filterAndRenderSongs();
             });
         });
+        */
     }
 
     // --- Filter & Render Songs ---
@@ -1424,6 +1938,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filterAndRenderSongs();
         updatePlayerUI();
 
+        await fetchSongs();
         await loadManagementStats().catch(error => {
             console.warn('[LocalSound] Could not refresh management stats after delete:', error);
         });
@@ -2033,6 +2548,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (authCloseBtn && authModal) {
             authCloseBtn.addEventListener('click', () => authModal.classList.remove('active'));
         }
+        if (settingsSidebarBtn) {
+            settingsSidebarBtn.addEventListener('click', () => {
+                if (!(isAdmin || isNotesAdmin)) return;
+                showToast('Tính năng đang phát triển', 'info');
+            });
+        }
         if (authForm) {
             authForm.addEventListener('submit', async (event) => {
                 event.preventDefault();
@@ -2083,6 +2604,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 void loadManagementStats().catch(() => { });
             });
         }
+        if (managementOrphanCleanupBtn) {
+            managementOrphanCleanupBtn.addEventListener('click', cleanupOrphanFiles);
+        }
+        if (adminNotesBtn && adminNotesModal) {
+            adminNotesBtn.addEventListener('click', () => {
+                if (!isAdmin && !isNotesAdmin) return;
+                adminNotesModal.classList.add('active');
+                void loadAdminNotes();
+            });
+        }
+        if (closeAdminNotes && adminNotesModal) {
+            closeAdminNotes.addEventListener('click', () => adminNotesModal.classList.remove('active'));
+        }
+        document.querySelectorAll('[data-note-filter]').forEach((button) => {
+            button.addEventListener('click', () => {
+                adminNoteFilter = button.dataset.noteFilter || 'new';
+                document.querySelectorAll('[data-note-filter]').forEach((item) => {
+                    item.classList.toggle('active', item === button);
+                });
+                renderAdminNotes();
+            });
+        });
         if (adminUploadBtn && uploadPlaceholderModal) {
             adminUploadBtn.addEventListener('click', () => {
                 if (!isAdmin) return;
@@ -2556,7 +3099,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (shortcutHelpBtn && shortcutModal) shortcutHelpBtn.addEventListener('click', () => shortcutModal.classList.add('active'));
         if (closeShortcutBtn && shortcutModal) closeShortcutBtn.addEventListener('click', () => shortcutModal.classList.remove('active'));
 
-        [eqModal, timerModal, shortcutModal, managementDataModal].forEach(modal => {
+        [eqModal, timerModal, shortcutModal, managementDataModal, adminNotesModal].forEach(modal => {
             if (modal) {
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) modal.classList.remove('active');
@@ -2764,150 +3307,4 @@ document.addEventListener('DOMContentLoaded', () => {
         return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
-    // --- Notes & Notepad Logic ---
-    let noteDebounceTimer = null;
-
-    function initNotesLogic() {
-        const editor = document.getElementById('note-text-editor');
-        const saveStatus = document.getElementById('note-save-status');
-        const copyBtn = document.getElementById('btn-copy-notes');
-        const clearBtn = document.getElementById('btn-clear-notes');
-
-        const checklistInput = document.getElementById('checklist-input');
-        const addChecklistBtn = document.getElementById('btn-add-checklist');
-
-        if (editor) {
-            editor.addEventListener('input', () => {
-                noteText = editor.value;
-                if (saveStatus) {
-                    saveStatus.textContent = '⏳ Đang lưu...';
-                    saveStatus.classList.remove('saved');
-                }
-                clearTimeout(noteDebounceTimer);
-                noteDebounceTimer = setTimeout(() => {
-            saveUserData();
-                    if (saveStatus) {
-                        saveStatus.textContent = '✓ Đã lưu tự động';
-                        saveStatus.classList.add('saved');
-                    }
-                }, 800);
-            });
-        }
-
-        if (copyBtn) {
-            copyBtn.addEventListener('click', () => {
-                if (!Array.isArray(noteList) || noteList.length === 0) {
-                    showToast('Danh sách trống, không có nội dung để sao chép!', 'warning');
-                    return;
-                }
-                const formattedList = noteList.map((item, idx) => `${idx + 1}. [${item.completed ? 'x' : ' '}] ${item.text}`).join('\n');
-                navigator.clipboard.writeText(formattedList).then(() => {
-                    showToast('📋 Đã sao chép danh sách bài hát vào khay nhớ tạm!', 'success');
-                }).catch(() => {
-                    showToast('📋 Đã sao chép danh sách bài hát!', 'success');
-                });
-            });
-        }
-
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                if (!Array.isArray(noteList) || noteList.length === 0) return;
-                showConfirmModal({
-                    title: 'Xoá tất cả bài hát',
-                    message: 'Hãy đảm bảo bài hát đã được tải...',
-                    confirmText: 'Xoá tất cả',
-                    isDanger: true,
-                    onConfirm: () => {
-                        noteList = [];
-                        renderChecklist();
-            saveUserData();
-                        showToast('Đã xoá toàn bộ danh sách bài hát', 'info');
-                    }
-                });
-            });
-        }
-
-        if (checklistInput && addChecklistBtn) {
-            const addChecklistItem = () => {
-                const text = checklistInput.value.trim();
-                if (!text) return;
-                if (!Array.isArray(noteList)) noteList = [];
-                noteList.unshift({
-                    id: Date.now(),
-                    text: text,
-                    completed: false
-                });
-                checklistInput.value = '';
-                renderChecklist();
-            saveUserData();
-                showToast(`Đã thêm "${text}" vào danh sách cần tải`, 'success');
-            };
-
-            addChecklistBtn.addEventListener('click', addChecklistItem);
-            checklistInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    addChecklistItem();
-                }
-            });
-        }
-
-        renderChecklist();
-    }
-
-    function renderChecklist() {
-        const container = document.getElementById('checklist-items-container');
-        const countEl = document.getElementById('checklist-count');
-        if (!container) return;
-
-        if (!Array.isArray(noteList)) noteList = [];
-
-        if (countEl) {
-            const completedCount = noteList.filter(item => item.completed).length;
-            countEl.textContent = `${completedCount}/${noteList.length} hoàn thành`;
-        }
-
-        if (noteList.length === 0) {
-            container.innerHTML = `<div class="loading-spinner" style="padding:20px; font-size:0.85rem;">Chưa có bài hát nào trong danh sách</div>`;
-            return;
-        }
-
-        container.innerHTML = '';
-        noteList.forEach((item, index) => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = `checklist-item ${item.completed ? 'completed' : ''}`;
-
-            itemDiv.innerHTML = `
-                <input type="checkbox" ${item.completed ? 'checked' : ''} id="chk-${item.id}">
-                <span class="checklist-text">${escapeHtml(item.text)}</span>
-                <button class="btn-del-checklist" title="Xoá mục này">🗑️</button>
-            `;
-
-            const checkbox = itemDiv.querySelector('input[type="checkbox"]');
-            const delBtn = itemDiv.querySelector('.btn-del-checklist');
-
-            checkbox.addEventListener('change', () => {
-                item.completed = checkbox.checked;
-                renderChecklist();
-            saveUserData();
-            });
-
-            delBtn.addEventListener('click', () => {
-                showConfirmModal({
-                    title: '⚠️ Xác nhận xoá mục',
-                    message: `Bạn có chắc chắn muốn xoá "${item.text}" khỏi danh sách ghi chú không?`,
-                    confirmText: 'Xoá mục',
-                    isDanger: true,
-                    onConfirm: () => {
-                        noteList.splice(index, 1);
-                        renderChecklist();
-            saveUserData();
-                        showToast('Đã xoá mục khỏi danh sách', 'info');
-                    }
-                });
-            });
-
-            container.appendChild(itemDiv);
-        });
-    }
 });

@@ -2,5 +2,48 @@
     "organizationId": "6ab3a589003022b3cdbf",
     "projectId": "6ab3a652002e667289ab",
     "projectName": "local_sound",
-    "endpoint": "https://sgp.cloud.appwrite.io/v1"
+    "endpoint": "https://sgp.cloud.appwrite.io/v1",
+    "functions": [
+        {
+            "$id": "song-admin",
+            "name": "Song-admin",
+            "runtime": "node-26",
+            "path": "functions/song-admin",
+            "previewDomainTarget": "edge",
+            "previewDomainLabel": "localsou",
+            "entrypoint": "src/main.js",
+            "execute": [
+                "user:6ab3f33c001d0e271d16",
+                "any"
+            ],
+            "enabled": true,
+            "logging": true,
+            "events": [],
+            "schedule": "",
+            "timeout": 15,
+            "commands": "npm install",
+            "scopes": [
+                "rows.read",
+                "rows.write",
+                "files.read",
+                "files.write",
+                "buckets.read",
+                "teams.read",
+                "users.read"
+            ],
+            "installationId": "6ab3fccbbd50159fb6ee",
+            "providerRepositoryId": "1371104845",
+            "providerBranch": "main",
+            "providerSilentMode": false,
+            "providerRootDirectory": "functions/song-admin",
+            "providerBranches": [],
+            "providerPaths": [
+                "src/**",
+                "functions/song-admin/**"
+            ],
+            "buildSpecification": "s-2vcpu-2gb",
+            "runtimeSpecification": "s-0.5vcpu-512mb",
+            "deploymentRetention": 0
+        }
+    ]
 }

@@ -78,15 +78,18 @@
                 </button>
             </nav>
 
-            <div class="sidebar-section">
-                <h3>Thư Mục Thật</h3>
-                <div class="folder-list" id="folder-list">
-                    <button class="folder-item active" data-folder="all">
-                        <span class="folder-dot"></span> Tất cả
-                    </button>
-                </div>
+            <div class="sidebar-section admin-sidebar-section hidden" id="admin-sidebar-section">
+                <h3>QUẢN TRỊ</h3>
+                <button class="folder-item" id="settings-sidebar-btn" type="button">
+                    <span class="folder-dot"></span> Cài đặt
+                </button>
                 <button class="folder-item hidden" id="management-data-btn" type="button">
                     <span class="folder-dot"></span> Quản lý data
+                </button>
+                <button class="folder-item hidden" id="admin-notes-btn" type="button">
+                    <span class="folder-dot"></span>
+                    <span>Nhận note</span>
+                    <span class="count-badge hidden" id="admin-notes-count">0</span>
                 </button>
             </div>
         </aside>
@@ -144,7 +147,7 @@
                     </button>
                 </div>
                 <div class="auth-controls hidden" id="auth-controls">
-                    <button class="auth-btn" id="auth-login-btn" type="button">Quản lý</button>
+                    <button class="auth-btn" id="auth-login-btn" type="button">Đăng nhập</button>
                     <div class="admin-session hidden" id="admin-session">
                         <span class="admin-user-label" id="admin-user-label"></span>
                         <button class="auth-btn" id="admin-upload-btn" type="button">Upload</button>
@@ -274,41 +277,31 @@
                 </div>
             </section>
 
-            <!-- Notes / Checklist Section -->
+            <!-- Song Requests Section -->
             <section class="notes-section hidden" id="notes-section">
                 <div class="notes-header">
-                    <div class="notes-title-group">
-                        <h2><span class="icon-cat icon-note" style="width: 22px; height: 22px;"></span> Note</h2>
-                    </div>
-                    <span id="note-save-status" class="note-save-status">✓ Đã lưu tự động</span>
+                    <h2>YÊU CẦU BÀI HÁT</h2>
+                    <span id="note-request-auth-status" class="note-request-auth-status">Bạn có thể gửi yêu cầu mà không cần đăng nhập.</span>
                 </div>
 
                 <div class="notes-body">
-                    <!-- Checklist Container -->
-                    <div class="notes-unified-container">
-                        <div class="notes-toolbar">
-                            <div class="notes-toolbar-left">
-                                <span class="notes-toolbar-title">Checklist</span>
-                                <span id="checklist-count" class="checklist-count-badge">0/0 ✓</span>
+                    <div class="notes-unified-container request-notes-container">
+                        <form id="song-request-form" class="song-request-form">
+                            <label class="notes-sub-header" for="song-request-message">YÊU CẦU BÀI HÁT</label>
+                            <textarea id="song-request-message" maxlength="2000" class="notes-textarea song-request-textarea"
+                                placeholder="Nhập tên bài hát hoặc nội dung muốn gửi..."></textarea>
+                            <div class="song-request-form-footer">
+                                <span id="song-request-limit" class="song-request-limit">0/2000</span>
+                                <button id="submit-song-request" class="btn-add-checklist" type="submit">Gửi yêu cầu</button>
                             </div>
-                            <div class="notes-actions">
-                                <button class="btn-note-action" id="btn-copy-notes"
-                                    title="Sao chép danh sách bài hát">📋 Sao chép</button>
-                                <button class="btn-note-action danger" id="btn-clear-notes"
-                                    title="Xoá tất cả bài hát">🗑️ Xoá tất cả</button>
+                            <p id="song-request-status" class="song-request-status-message hidden" role="status" aria-live="polite"></p>
+                        </form>
+
+                        <div class="song-request-history">
+                            <h3 class="notes-sub-header">YÊU CẦU CỦA BẠN</h3>
+                            <div id="song-request-list" class="song-request-list">
+                                <p class="song-request-empty">Bạn chưa gửi yêu cầu nào.</p>
                             </div>
-                        </div>
-
-                        <!-- Quick Add Input Bar -->
-                        <div class="checklist-input-group">
-                            <input type="text" id="checklist-input" placeholder="Nhập tên bài hát nhớ tạm cần tải...">
-                            <button id="btn-add-checklist" class="btn-add-checklist">+ Thêm bài hát</button>
-                        </div>
-
-                        <!-- Checklist Items Container -->
-                        <div class="checklist-items" id="checklist-items-container">
-                            <div class="loading-spinner" style="padding:16px; font-size:0.85rem;">Chưa có bài hát nào
-                                trong danh sách</div>
                         </div>
                     </div>
                 </div>
@@ -441,7 +434,7 @@
     <div class="modal" id="auth-modal">
         <div class="modal-content small">
             <div class="modal-header">
-                <h3>Quản lý</h3>
+                <h3>Đăng nhập</h3>
                 <button class="close-btn" id="close-auth" type="button">&times;</button>
             </div>
             <div class="modal-body">
@@ -484,26 +477,81 @@
                 <h3>Quản lý dữ liệu</h3>
                 <button class="close-btn" id="close-management-data" type="button">&times;</button>
             </div>
-            <div class="modal-body" style="display: flex; flex-direction: column; gap: 14px;">
-                <section>
-                    <h4 style="margin: 0 0 8px;">DUNG LƯỢNG STORAGE</h4>
-                    <div id="management-storage-used">Đang tải...</div>
-                    <div id="management-storage-limit" style="color: var(--text-muted);">Giới hạn: Đang tải...</div>
-                    <div style="height: 10px; margin: 10px 0 6px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,0.12);">
-                        <div id="management-storage-progress" style="height: 100%; width: 0%; border-radius: inherit; background: linear-gradient(90deg, var(--primary), #a78bfa); transition: width 180ms ease;"></div>
+            <div class="modal-body management-data-body">
+                <section class="management-section" aria-labelledby="management-cloud-heading">
+                    <h4 class="management-section-title" id="management-cloud-heading">APPWRITE CLOUD</h4>
+                    <div class="management-stat-row">
+                        <span>Gói</span>
+                        <strong id="management-cloud-plan">Free</strong>
                     </div>
-                    <div id="management-storage-remaining" style="color: var(--text-muted);">Còn lại: Đang tải...</div>
-                    <div id="management-storage-percent" style="color: var(--text-muted);">Sử dụng: Đang tải...</div>
+                    <div class="management-stat-row">
+                        <span>Bài hát trong Database</span>
+                        <strong id="management-cloud-song-count">Đang tải...</strong>
+                    </div>
+                    <div class="management-stat-row">
+                        <span>File audio trong Storage</span>
+                        <strong id="management-cloud-storage-file-count">Đang tải...</strong>
+                    </div>
+                    <div class="management-stat-row">
+                        <span>File mồ côi</span>
+                        <strong id="management-cloud-orphan-count">Đang tải...</strong>
+                    </div>
+                    <button class="btn-secondary management-orphan-cleanup-btn" id="management-orphan-cleanup-btn" type="button" disabled>
+                        Dọn file mồ côi (0)
+                    </button>
+                    <div class="management-stat-row">
+                        <span>Dung lượng Storage</span>
+                        <strong id="management-cloud-storage">Đang tải...</strong>
+                    </div>
+                    <div class="management-progress-track" role="progressbar" aria-label="Dung lượng Appwrite Cloud" aria-valuemin="0" aria-valuemax="100">
+                        <div id="management-storage-progress" class="management-progress-bar"></div>
+                    </div>
+                    <div class="management-stat-row management-stat-row-muted">
+                        <span>Dung lượng còn lại</span>
+                        <span id="management-storage-remaining">Đang tải...</span>
+                    </div>
+                    <div class="management-stat-row management-stat-row-muted">
+                        <span>Đã sử dụng</span>
+                        <span id="management-storage-percent">Đang tải...</span>
+                    </div>
                 </section>
-                <section>
-                    <h4 style="margin: 0 0 8px;">THƯ VIỆN</h4>
-                    <div id="management-song-count">Tổng số bài: Đang tải...</div>
-                    <div id="management-file-count">Tổng số file: Đang tải...</div>
-                    <div id="management-total-size" style="color: var(--text-muted);">Dung lượng TB: Đang tải...</div>
+                <section class="management-section" aria-labelledby="management-library-heading">
+                    <h4 class="management-section-title" id="management-library-heading">THƯ VIỆN</h4>
+                    <div class="management-stat-row">
+                        <span>Số bài được gọi ra</span>
+                        <strong id="management-library-song-count">Đang tải...</strong>
+                    </div>
+                    <div class="management-stat-row">
+                        <span>Số thư mục</span>
+                        <strong id="management-library-folder-count">Đang tải...</strong>
+                    </div>
+                    <div class="management-stat-row management-stat-row-muted">
+                        <span>Dung lượng thư viện</span>
+                        <span id="management-library-size">Đang tải...</span>
+                    </div>
                 </section>
                 <p id="management-stats-status" class="auth-error hidden" role="status" aria-live="polite"></p>
                 <button class="btn-secondary" id="management-refresh-btn" type="button">Làm mới</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Admin Song Requests -->
+    <div class="modal" id="admin-notes-modal">
+        <div class="modal-content admin-notes-modal-content">
+            <div class="modal-header">
+                <h3>NHẬN NOTE</h3>
+                <button class="close-btn" id="close-admin-notes" type="button">&times;</button>
+            </div>
+            <div class="admin-notes-filters" role="tablist" aria-label="Lọc note">
+                <button class="btn-note-filter active" data-note-filter="new" type="button">Mới</button>
+                <button class="btn-note-filter" data-note-filter="seen" type="button">Đã xem</button>
+                <button class="btn-note-filter" data-note-filter="done" type="button">Hoàn thành</button>
+                <button class="btn-note-filter" data-note-filter="rejected" type="button">Từ chối</button>
+                <button class="btn-note-filter" data-note-filter="all" type="button">Tất cả</button>
+            </div>
+            <p id="admin-notes-status" class="admin-notes-status" role="status" aria-live="polite"></p>
+            <div id="admin-notes-list" class="admin-notes-list"></div>
         </div>
     </div>
 
