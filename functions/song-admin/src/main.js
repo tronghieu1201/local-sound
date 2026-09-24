@@ -57,31 +57,45 @@ function getCorsHeaders(req) {
 
 function parseRequestBody(req) {
     try {
-        const bodyJson = req?.bodyJson;
+        const json = req?.bodyJson;
         if (
-            bodyJson
-            && typeof bodyJson === 'object'
-            && Object.keys(bodyJson).length > 0
+            json
+            && typeof json === 'object'
+            && !Array.isArray(json)
+            && Object.keys(json).length > 0
         ) {
-            return bodyJson;
+            return json;
         }
     } catch {
-        // Appwrite may throw while reading bodyJson when the request body is invalid JSON.
-    }
-    if (req?.body && typeof req.body === 'object' && !Array.isArray(req.body)) {
-        return req.body;
+        // Fall through to bodyText if JSON parsing is unavailable.
     }
 
-    const rawBody = typeof req?.bodyText === 'string'
-        ? req.bodyText
-        : typeof req?.body === 'string'
-            ? req.body
-            : '';
-    if (!rawBody.trim()) return {};
+    let text = '';
+    try {
+        const bodyText = req?.bodyText;
+        if (typeof bodyText === 'string') text = bodyText;
+    } catch {
+        // Fall through to the legacy body field.
+    }
+
+    if (!text) {
+        try {
+            const legacyBody = req?.body;
+            if (typeof legacyBody === 'string') {
+                text = legacyBody;
+            } else if (legacyBody && typeof legacyBody === 'object' && !Array.isArray(legacyBody)) {
+                return legacyBody;
+            }
+        } catch {
+            // Deprecated body access may not be available in newer runtimes.
+        }
+    }
+
+    if (!text.trim()) return {};
 
     try {
-        const parsed = JSON.parse(rawBody);
-        return parsed && typeof parsed === 'object' ? parsed : {};
+        const parsed = JSON.parse(text);
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
     } catch {
         return {};
     }
@@ -486,7 +500,7 @@ async function handleSubmitNote({ req, res, body, corsHeaders, log, error }) {
 }
 
 export default async ({ req, res, log, error }) => {
-    log('FUNCTION_DEBUG_V8');
+    log('FUNCTION_DEBUG_V9_BODY_PARSER');
 
     const method = String(req?.method || '').toUpperCase();
     const corsHeaders = getCorsHeaders(req);
@@ -508,6 +522,21 @@ export default async ({ req, res, log, error }) => {
     const action = requestedAction === 'delete'
         ? 'delete-song'
         : requestedAction || (rowId ? 'delete-song' : '');
+
+    let bodyTextLength = null;
+    try {
+        const bodyText = req?.bodyText;
+        if (typeof bodyText === 'string') bodyTextLength = bodyText.length;
+    } catch {
+        // Debug logging must not affect request routing.
+    }
+    log(JSON.stringify({
+        tag: 'request-body-debug-v9',
+        method: req?.method,
+        action,
+        bodyKeys: Object.keys(body),
+        bodyTextLength
+    }));
 
     log(JSON.stringify({
         tag: 'incoming-action',
