@@ -226,6 +226,10 @@ body {
     background-image: url("../assets/logo/game-over.png");
 }
 
+.icon-cat.icon-wedding {
+    background-image: url("../assets/logo/wedding-couple.png");
+}
+
 .icon-cat.icon-sleep {
     background-image: url("../assets/logo/sleeping.png");
 }

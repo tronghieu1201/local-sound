@@ -144,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const aloneCountEl = document.getElementById('alone-count');
     const karaokeCountEl = document.getElementById('karaoke-count');
     const giaitriCountEl = document.getElementById('giaitri-count');
+    const weddingCountEl = document.getElementById('wedding-count');
     const sleepCountEl = document.getElementById('sleep-count');
 
     const playlistCountEl = document.getElementById('playlist-count');
@@ -1584,6 +1585,7 @@ document.addEventListener('DOMContentLoaded', () => {
         alone: 'Alone',
         karaoke: 'Karaoke',
         giaitri: 'Giải Trí',
+        wedding: 'Wedding',
         sleep: 'Đi Ngủ'
     });
 
@@ -1605,6 +1607,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alone: ['alone', 'person'],
             karaoke: ['karaoke'],
             giaitri: ['giaitri', 'giai tri', 'game', 'game-over'],
+            wedding: ['wedding', 'wedding-couple'],
             sleep: ['sleep']
         }[catName] || [];
 
@@ -1616,7 +1619,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getSongCategoriesForUI(song) {
         if (!song) return [];
-        return ['trghy', 'nhacdo', 'karaoke', 'giaitri', 'sleep', 'cooking', 'alone']
+        return ['trghy', 'nhacdo', 'karaoke', 'giaitri', 'wedding', 'sleep', 'cooking', 'alone']
             .filter((catName) => isCloudCategoryActive(song, catName));
     }
 
@@ -1632,6 +1635,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let aloneCount = 0;
         let karaokeCount = 0;
         let giaitriCount = 0;
+        let weddingCount = 0;
         let sleepCount = 0;
 
         allSongs.forEach(song => {
@@ -1643,6 +1647,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cats.includes('alone')) aloneCount++;
             if (cats.includes('karaoke')) karaokeCount++;
             if (cats.includes('giaitri')) giaitriCount++;
+            if (cats.includes('wedding')) weddingCount++;
             if (cats.includes('sleep')) sleepCount++;
         });
 
@@ -1652,6 +1657,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (aloneCountEl) aloneCountEl.textContent = aloneCount;
         if (karaokeCountEl) karaokeCountEl.textContent = karaokeCount;
         if (giaitriCountEl) giaitriCountEl.textContent = giaitriCount;
+        if (weddingCountEl) weddingCountEl.textContent = weddingCount;
         if (sleepCountEl) sleepCountEl.textContent = sleepCount;
     }
 
@@ -1739,6 +1745,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (currentTab === 'giaitri') {
             currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('giaitri'));
             playlistHeadingEl.textContent = isMobile ? 'Giải Trí' : 'Danh Sách Bài Hát Giải Trí';
+        } else if (currentTab === 'wedding') {
+            currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('wedding'));
+            playlistHeadingEl.textContent = isMobile ? 'Wedding' : 'Danh Sách Bài Hát Wedding';
         } else if (currentTab === 'sleep') {
             currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('sleep'));
             playlistHeadingEl.textContent = isMobile ? 'Đi Ngủ' : 'Danh Sách Bài Hát Đi Ngủ';
@@ -1808,6 +1817,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alone: 'Alone',
             karaoke: 'Karaoke',
             giaitri: 'Giải Trí',
+            wedding: 'Wedding',
             sleep: 'Đi Ngủ'
         };
 
@@ -1835,6 +1845,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasAlone = isSongCategoryActive(song, 'alone');
             const hasKaraoke = isSongCategoryActive(song, 'karaoke');
             const hasGiaitri = isSongCategoryActive(song, 'giaitri');
+            const hasWedding = isSongCategoryActive(song, 'wedding');
             const hasSleep = isSongCategoryActive(song, 'sleep');
 
             const categoryTagButtons = canEditCategories ? `
@@ -1842,6 +1853,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="cat-tag-btn ${hasNhacdo ? 'active' : ''}" data-cat="nhacdo" title="Nhạc Đỏ"><span class="icon-cat icon-nhacdo"></span></button>
                     <button class="cat-tag-btn ${hasKaraoke ? 'active' : ''}" data-cat="karaoke" title="Karaoke"><span class="icon-cat icon-karaoke"></span></button>
                     <button class="cat-tag-btn ${hasGiaitri ? 'active' : ''}" data-cat="giaitri" title="Giải Trí"><span class="icon-cat icon-giaitri"></span></button>
+                    <button class="cat-tag-btn ${hasWedding ? 'active' : ''}" data-cat="wedding" title="Wedding"><span class="icon-cat icon-wedding"></span></button>
                     <button class="cat-tag-btn ${hasSleep ? 'active' : ''}" data-cat="sleep" title="Đi ngủ"><span class="icon-cat icon-sleep"></span></button>
                     <button class="cat-tag-btn ${hasCooking ? 'active' : ''}" data-cat="cooking" title="Nấu ăn"><span class="icon-cat icon-cooking"></span></button>
                     <button class="cat-tag-btn ${hasAlone ? 'active' : ''}" data-cat="alone" title="Alone"><span class="icon-cat icon-alone"></span></button>
@@ -1863,6 +1875,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>
                         <button class="dropdown-item dropdown-cat-item ${hasGiaitri ? 'active' : ''}" data-cat="giaitri">
                             <span class="icon-cat icon-giaitri"></span> <span>Giải Trí</span> ${hasGiaitri ? '<span class="cat-check">✓</span>' : ''}
+                        </button>
+                        <button class="dropdown-item dropdown-cat-item ${hasWedding ? 'active' : ''}" data-cat="wedding">
+                            <span class="icon-cat icon-wedding"></span> <span>Wedding</span> ${hasWedding ? '<span class="cat-check">✓</span>' : ''}
                         </button>
                         <button class="dropdown-item dropdown-cat-item ${hasSleep ? 'active' : ''}" data-cat="sleep">
                             <span class="icon-cat icon-sleep"></span> <span>Đi Ngủ</span> ${hasSleep ? '<span class="cat-check">✓</span>' : ''}
@@ -2431,6 +2446,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alone: { iconHtml: '<span class="icon-cat icon-alone" style="margin-right: 4px;"></span>', label: 'Alone', color: '#38bdf8' },
             karaoke: { iconHtml: '<span class="icon-cat icon-karaoke" style="margin-right: 4px;"></span>', label: 'Karaoke', color: '#ec4899' },
             giaitri: { iconHtml: '<span class="icon-cat icon-giaitri" style="margin-right: 4px;"></span>', label: 'Giải Trí', color: '#10b981' },
+            wedding: { iconHtml: '<span class="icon-cat icon-wedding" style="margin-right: 4px;"></span>', label: 'Wedding', color: '#fb7185' },
             trghy: { iconHtml: '<span class="icon-cat icon-trghy" style="margin-right: 4px;"></span>', label: '<span class="icon-cat icon-trghy"></span>', color: '#ef4444' },
             tghy: { iconHtml: '<span class="icon-cat icon-trghy" style="margin-right: 4px;"></span>', label: '<span class="icon-cat icon-trghy"></span>', color: '#ef4444' },
             xxx: { iconHtml: '<span class="icon-cat icon-trghy" style="margin-right: 4px;"></span>', label: '<span class="icon-cat icon-trghy"></span>', color: '#ef4444' }
@@ -2440,7 +2456,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cats = getSongCategoriesForUI(song);
             let activeCatKey = null;
 
-            const priorityKeys = ['trghy', 'tghy', 'xxx', 'nhacdo', 'karaoke', 'giaitri', 'sleep', 'cooking', 'alone'];
+            const priorityKeys = ['trghy', 'tghy', 'xxx', 'nhacdo', 'karaoke', 'giaitri', 'wedding', 'sleep', 'cooking', 'alone'];
             for (let key of priorityKeys) {
                 if (cats.includes(key)) {
                     activeCatKey = key;
@@ -2504,6 +2520,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { key: 'nhacdo', label: '<span class="icon-cat icon-nhacdo" style="margin-right: 6px;"></span> Nhạc Đỏ' },
             { key: 'karaoke', label: '<span class="icon-cat icon-karaoke" style="margin-right: 6px;"></span> Karaoke' },
             { key: 'giaitri', label: '<span class="icon-cat icon-giaitri" style="margin-right: 6px;"></span> Giải Trí' },
+            { key: 'wedding', label: '<span class="icon-cat icon-wedding" style="margin-right: 6px;"></span> Wedding' },
             { key: 'sleep', label: '<span class="icon-cat icon-sleep" style="margin-right: 6px;"></span> Đi Ngủ' },
             { key: 'cooking', label: '<span class="icon-cat icon-cooking" style="margin-right: 6px;"></span> Nấu Ăn' },
             { key: 'alone', label: '<span class="icon-cat icon-alone" style="margin-right: 6px;"></span> Alone' }
@@ -2523,7 +2540,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             const chk = row.querySelector('input');
-            const catCleanMap = { nhacdo: 'Nhạc Đỏ', sleep: 'Đi Ngủ', cooking: 'Nấu Ăn', alone: 'Alone', karaoke: 'Karaoke', giaitri: 'Giải Trí', trghy: 'trghy' };
+            const catCleanMap = { nhacdo: 'Nhạc Đỏ', sleep: 'Đi Ngủ', cooking: 'Nấu Ăn', alone: 'Alone', karaoke: 'Karaoke', giaitri: 'Giải Trí', wedding: 'Wedding', trghy: 'trghy' };
             const catCleanName = catCleanMap[cat.key] || 'danh sách';
 
             chk.addEventListener('click', (e) => {
@@ -2582,6 +2599,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alone: '<span class="icon-cat icon-alone" style="margin-right: 4px;"></span> Alone',
             karaoke: '<span class="icon-cat icon-karaoke" style="margin-right: 4px;"></span> Karaoke',
             giaitri: '<span class="icon-cat icon-giaitri" style="margin-right: 4px;"></span> Giải Trí',
+            wedding: '<span class="icon-cat icon-wedding" style="margin-right: 4px;"></span> Wedding',
             sleep: '<span class="icon-cat icon-sleep" style="margin-right: 4px;"></span> Đi ngủ'
         };
 
@@ -2809,8 +2827,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         showToast(`Cập nhật folder thất bại: ${error?.message || 'Không rõ nguyên nhân.'}`, 'warning');
                     });
             } else {
-                const catCleanMap = { nhacdo: 'Nhạc Đỏ', sleep: 'Đi Ngủ', cooking: 'Nấu Ăn', alone: 'Alone', karaoke: 'Karaoke', giaitri: 'Giải Trí', trghy: 'trghy', tghy: 'trghy', xxx: 'trghy' };
-                const priorityKeys = ['trghy', 'tghy', 'xxx', 'nhacdo', 'karaoke', 'giaitri', 'sleep', 'cooking', 'alone'];
+                const catCleanMap = { nhacdo: 'Nhạc Đỏ', sleep: 'Đi Ngủ', cooking: 'Nấu Ăn', alone: 'Alone', karaoke: 'Karaoke', giaitri: 'Giải Trí', wedding: 'Wedding', trghy: 'trghy', tghy: 'trghy', xxx: 'trghy' };
+                const priorityKeys = ['trghy', 'tghy', 'xxx', 'nhacdo', 'karaoke', 'giaitri', 'wedding', 'sleep', 'cooking', 'alone'];
                 let activeCatKey = null;
                 for (let key of priorityKeys) {
                     if (cats.includes(key)) {
