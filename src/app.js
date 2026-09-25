@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
         adminUserId: '6ab3f33c001d0e271d16'
     });
     const APPWRITE_PAGE_SIZE = 100;
+    const LIBRARY_REFRESH_DELAY_MS = 200;
+    const MAX_UPLOAD_FILES = 15;
     const FREE_CLOUD_QUOTA_BYTES = 2 * 1024 * 1024 * 1024;
     const ASSET_BASE_PATH = 'assets/';
     const NOTE_ACTIONS = Object.freeze({
@@ -32,6 +34,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- State Variables ---
     let allSongs = [];
+    let songsFetchPromise = null;
+    let hasLoadedSongs = false;
+    let libraryRefreshReady = false;
+    let libraryRefreshTimer = null;
     let currentPlaylist = [];
     let currentIndex = -1;
     let currentPlayingSong = null;
@@ -40,6 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentAuthUser = null;
     let isAdmin = false;
     let isNotesAdmin = false;
+    let uploadQueue = [];
+    let uploadSelectionError = '';
+    let isUploadingSongs = false;
+    let isCleaningOrphans = false;
 
     function getCurrentPlayingSong() {
         if (currentPlayingSong) return currentPlayingSong;
@@ -91,8 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let audioCtx = null;
     let analyserNode = null;
     let sourceNode = null;
-    let eqBands = [];
-    const eqFrequencies = [60, 230, 910, 3600, 14000];
 
     // --- DOM Elements ---
     const audio = document.getElementById('audio-player');
@@ -146,14 +154,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('visualizer-canvas');
     const canvasCtx = canvas ? canvas.getContext('2d') : null;
 
-    // Modals, Timers & Power Saver Elements
-    const eqModal = document.getElementById('eq-modal');
+    // Modals & Timers
     const timerModal = document.getElementById('timer-modal');
     const shortcutModal = document.getElementById('shortcut-modal');
     const timerBadgeText = document.getElementById('timer-badge-text');
-    const powerSaverBtn = document.getElementById('power-saver-btn');
-    const powerSaverBadge = document.getElementById('power-saver-badge');
-    const powerSaverOverlay = document.getElementById('power-saver-overlay');
     const authModal = document.getElementById('auth-modal');
     const authControls = document.getElementById('auth-controls');
     const authLoginBtn = document.getElementById('auth-login-btn');
@@ -173,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminUploadForm = document.getElementById('admin-upload-form');
     const adminUploadFileInput = document.getElementById('admin-upload-file');
     const adminUploadFileMeta = document.getElementById('admin-upload-file-meta');
+    const adminUploadFileList = document.getElementById('admin-upload-file-list');
     const adminUploadStatus = document.getElementById('admin-upload-status');
     const adminUploadSubmit = document.getElementById('admin-upload-submit');
     const managementDataModal = document.getElementById('management-data-modal');
@@ -203,8 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const adminNotesList = document.getElementById('admin-notes-list');
     const adminNotesStatus = document.getElementById('admin-notes-status');
 
-    // Power Saver & Screen WakeLock State
-    let isPowerSaverON = false;
+    // Screen WakeLock State
     let wakeLock = null;
 
     // --- Initialization ---
@@ -216,8 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setupEventListeners();
         initSongRequestLogic();
         await initializeAuth();
-        initBatteryAPI();
+        await loadUserData();
         await fetchSongs();
+        libraryRefreshReady = true;
     }
 
     function resizeCanvas() {
@@ -238,22 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             sourceNode = audioCtx.createMediaElementSource(audio);
 
-            let lastNode = sourceNode;
-            eqBands = eqFrequencies.map(freq => {
-                const filter = audioCtx.createBiquadFilter();
-                if (freq <= 230) filter.type = 'lowshelf';
-                else if (freq >= 3600) filter.type = 'highshelf';
-                else filter.type = 'peaking';
-                filter.frequency.value = freq;
-                filter.Q.value = 1.0;
-                filter.gain.value = 0;
-
-                lastNode.connect(filter);
-                lastNode = filter;
-                return filter;
-            });
-
-            lastNode.connect(analyserNode);
+            sourceNode.connect(analyserNode);
             analyserNode.connect(audioCtx.destination);
 
             drawVisualizer();
@@ -281,47 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
 
-    // --- Battery Manager API ---
-    let batteryManager = null;
-
-    async function initBatteryAPI() {
-        if ('getBattery' in navigator) {
-            try {
-                batteryManager = await navigator.getBattery();
-                updateBatteryUI();
-
-                batteryManager.addEventListener('chargingchange', () => {
-                    updateBatteryUI();
-                    if (batteryManager.charging && isPowerSaverON) {
-                        showToast('⚡ Máy đã kết nối sạc nguồn! Tự động tắt chế độ tiết kiệm pin.', 'warning');
-                        togglePowerSaverMode(false);
-                    }
-                });
-
-                batteryManager.addEventListener('levelchange', updateBatteryUI);
-            } catch (e) {
-                console.warn('Battery API không hỗ trợ:', e);
-            }
-        } else {
-            updateBatteryUI();
-        }
-    }
-
-    function updateBatteryUI() {
-        const psBatteryLevel = document.getElementById('ps-battery-level');
-        if (!psBatteryLevel) return;
-        if (batteryManager) {
-            const pct = Math.round(batteryManager.level * 100);
-            if (batteryManager.charging) {
-                psBatteryLevel.innerHTML = `⚡ ${pct}% • Đang sạc nguồn`;
-            } else {
-                psBatteryLevel.innerHTML = `🔋 ${pct}% • Tiết kiệm pin`;
-            }
-        } else {
-            psBatteryLevel.innerHTML = `🔋 Tiết kiệm pin`;
-        }
-    }
-
+    // --- Playback Screen WakeLock ---
     async function requestWakeLock() {
         if ('wakeLock' in navigator) {
             try {
@@ -340,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function updateWakeLockState() {
         const isAudioActive = !audio.paused && audio.currentTime > 0 && !audio.ended;
-        const shouldKeepAwake = isPowerSaverON || isPlaying || isAudioActive;
+        const shouldKeepAwake = isPlaying || isAudioActive;
 
         if (shouldKeepAwake) {
             if (wakeLock === null) {
@@ -354,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.addEventListener('visibilitychange', async () => {
+        scheduleLibraryRefresh();
         if (document.visibilityState === 'visible') {
             await updateWakeLockState();
             if (audioCtx && audioCtx.state === 'suspended' && isPlaying) {
@@ -361,6 +312,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+
+    window.addEventListener('focus', scheduleLibraryRefresh);
+    window.addEventListener('online', scheduleLibraryRefresh);
 
     audio.addEventListener('play', () => {
         isPlaying = true;
@@ -373,68 +327,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updateWakeLockState();
         updateMediaSession();
     });
-
-    async function togglePowerSaverMode(forceState, skipSave = false, userTriggered = false) {
-        // If user tries to turn ON, verify battery charging status
-        const targetState = (forceState !== undefined) ? Boolean(forceState) : !isPowerSaverON;
-
-        if (targetState === true) {
-            if (batteryManager && batteryManager.charging) {
-                showToast('⚡ Máy đang cắm sạc trực tiếp. Không cần bật chế độ tiết kiệm pin!', 'warning');
-                if (isPowerSaverON) {
-                    isPowerSaverON = false;
-                    applyPowerSaverUI(false);
-                }
-                return;
-            }
-        }
-
-        isPowerSaverON = targetState;
-        applyPowerSaverUI(isPowerSaverON);
-
-        if (userTriggered) {
-            if (isPowerSaverON) {
-                showToast('⚡ Đã BẬT Tiết kiệm pin (Màn hình tối OLED, giữ nhạc phát mượt)', 'success');
-            } else {
-                showToast('💡 Đã TẮT Tiết kiệm pin (Khôi phục màn hình sáng bình thường)', 'info');
-            }
-        }
-
-        if (!skipSave) {
-            saveUserData();
-        }
-    }
-
-    function applyPowerSaverUI(isOn) {
-        updateBatteryUI();
-
-        const psTrackName = document.getElementById('ps-track-name');
-        const psPlayBtn = document.getElementById('ps-play-btn');
-
-        if (currentIndex >= 0 && currentPlaylist[currentIndex] && psTrackName) {
-            psTrackName.textContent = `🎵 ${currentPlaylist[currentIndex].title}`;
-        }
-        if (psPlayBtn) {
-            psPlayBtn.textContent = isPlaying ? '⏸️' : '▶️';
-        }
-
-        if (powerSaverBtn && powerSaverBadge && powerSaverOverlay) {
-            if (isOn) {
-                powerSaverBtn.classList.add('active');
-                powerSaverBadge.textContent = 'ON';
-                powerSaverBtn.title = 'Tiết kiệm pin & Giữ màn hình (Đang BẬT)';
-                powerSaverOverlay.classList.remove('hidden');
-                document.body.classList.add('power-saver-active');
-            } else {
-                powerSaverBtn.classList.remove('active');
-                powerSaverBadge.textContent = 'OFF';
-                powerSaverBtn.title = 'Tiết kiệm pin & Giữ màn hình (Đang TẮT)';
-                powerSaverOverlay.classList.add('hidden');
-                document.body.classList.remove('power-saver-active');
-            }
-        }
-        updateWakeLockState();
-    }
 
     function applyUserData(data) {
         if (!data) return;
@@ -472,8 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const payload = {
                 recent: recentSongs,
                 volume: audio.volume,
-                loopMode: loopMode,
-                powerSaver: isPowerSaverON
+                loopMode: loopMode
             };
 
             // Save browser preferences immediately for the next session
@@ -1292,6 +1183,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function cleanupOrphanFiles() {
+        if (isUploadingSongs || isCleaningOrphans) {
+            showToast('Vui lòng chờ tác vụ đang chạy hoàn tất.', 'warning');
+            return;
+        }
         if (!isAdmin || !managementOrphanCleanupBtn || managementOrphanCleanupBtn.disabled) return;
 
         showConfirmModal({
@@ -1300,6 +1195,11 @@ document.addEventListener('DOMContentLoaded', () => {
             confirmText: 'Dọn file',
             isDanger: true,
             onConfirm: async () => {
+                if (isUploadingSongs || isCleaningOrphans) {
+                    showToast('Vui lòng chờ tác vụ đang chạy hoàn tất.', 'warning');
+                    return;
+                }
+                isCleaningOrphans = true;
                 managementOrphanCleanupBtn.disabled = true;
                 setManagementStatsStatus('Đang dọn file mồ côi...');
 
@@ -1316,6 +1216,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     setManagementStatsStatus(`Dọn file mồ côi thất bại: ${error?.message || 'Không rõ nguyên nhân.'}`, true);
                     showToast(`Dọn file mồ côi thất bại: ${error?.message || 'Không rõ nguyên nhân.'}`, 'warning');
                     managementOrphanCleanupBtn.disabled = false;
+                } finally {
+                    isCleaningOrphans = false;
                 }
             }
         });
@@ -1331,17 +1233,72 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateUploadFileMeta() {
-        const file = adminUploadFileInput?.files?.[0];
-        if (!adminUploadFileMeta) return;
-
-        if (!file) {
-            adminUploadFileMeta.textContent = '';
-            adminUploadFileMeta.classList.add('hidden');
-            return;
+        if (isUploadingSongs) return;
+        const files = Array.from(adminUploadFileInput?.files || []);
+        uploadQueue = files.map(file => ({ file, status: 'pending', error: '' }));
+        uploadSelectionError = '';
+        if (files.length) {
+            try {
+                validateUploadFiles(files);
+            } catch (error) {
+                uploadSelectionError = error.message;
+            }
         }
+        setUploadStatus(uploadSelectionError, uploadSelectionError ? 'error' : '');
+        renderUploadQueue();
+    }
 
-        adminUploadFileMeta.textContent = `${file.name} · ${formatFileSize(file.size)}`;
-        adminUploadFileMeta.classList.remove('hidden');
+    function renderUploadQueue() {
+        if (adminUploadFileMeta) {
+            const totalBytes = uploadQueue.reduce((total, item) => total + item.file.size, 0);
+            adminUploadFileMeta.textContent = `${uploadQueue.length}/${MAX_UPLOAD_FILES} bài hát · ${formatFileSize(totalBytes)}`;
+            adminUploadFileMeta.classList.toggle('hidden', !uploadQueue.length);
+        }
+        if (adminUploadFileList) {
+            adminUploadFileList.replaceChildren();
+            adminUploadFileList.classList.toggle('hidden', !uploadQueue.length);
+            const statusLabels = {
+                pending: 'Chờ tải lên',
+                uploading: 'Đang tải lên…',
+                success: 'Đã tải lên',
+                error: 'Thất bại'
+            };
+            uploadQueue.forEach((item) => {
+                const row = document.createElement('li');
+                row.className = `upload-file-item is-${item.status}`;
+                const name = document.createElement('span');
+                name.textContent = `${item.file.name} · ${formatFileSize(item.file.size)}`;
+                const status = document.createElement('span');
+                status.className = 'upload-file-result';
+                status.textContent = item.error ? `${statusLabels[item.status]}: ${item.error}` : statusLabels[item.status];
+                row.append(name, status);
+                adminUploadFileList.append(row);
+            });
+        }
+        if (adminUploadFileInput) adminUploadFileInput.disabled = isUploadingSongs;
+        if (adminUploadForm) adminUploadForm.setAttribute('aria-busy', String(isUploadingSongs));
+        if (adminUploadSubmit) {
+            const remaining = uploadQueue.filter(item => item.status !== 'success').length;
+            const hasErrors = uploadQueue.some(item => item.status === 'error');
+            adminUploadSubmit.disabled = isUploadingSongs || !!uploadSelectionError || !remaining;
+            adminUploadSubmit.textContent = isUploadingSongs ? 'Đang tải lên…'
+                : hasErrors ? `Thử lại ${remaining} bài chưa tải lên`
+                    : remaining ? `Upload ${remaining} bài hát` : 'Upload';
+        }
+    }
+
+    function validateUploadFiles(files) {
+        if (!files.length) throw new Error('Vui lòng chọn ít nhất một file MP3.');
+        if (files.length > MAX_UPLOAD_FILES) {
+            throw new Error(`Chỉ được chọn tối đa ${MAX_UPLOAD_FILES} bài hát mỗi lượt. Bạn đã chọn ${files.length} bài.`);
+        }
+        for (const file of files) {
+            try {
+                validateUploadFile(file);
+            } catch (error) {
+                throw new Error(`${file.name}: ${error.message}`);
+            }
+        }
     }
 
     function validateUploadFile(file) {
@@ -1357,6 +1314,96 @@ document.addEventListener('DOMContentLoaded', () => {
         if (file.size > APPWRITE_CONFIG.maxUploadBytes) {
             throw new Error(`File vượt quá giới hạn bucket (${formatFileSize(APPWRITE_CONFIG.maxUploadBytes)}).`);
         }
+        if (!file.name.replace(/\.[^.]+$/, '').trim()) {
+            throw new Error('Không thể tạo title từ tên file MP3.');
+        }
+    }
+
+    async function validateUploadCapacity(files) {
+        let stats = null;
+        try {
+            stats = await fetchCloudStats();
+        } catch (error) {
+            console.warn('[LocalSound] Upload preflight stats unavailable; continuing upload:', error);
+        }
+
+        if (stats) {
+            const totalBytes = files.reduce((total, file) => total + file.size, 0);
+            const usedBytes = Number(stats.storageUsedBytes);
+            const remainingBytes = Math.max(FREE_CLOUD_QUOTA_BYTES - usedBytes, 0);
+            if (Number.isFinite(usedBytes) && usedBytes + totalBytes > FREE_CLOUD_QUOTA_BYTES) {
+                throw new Error(
+                    `Không đủ dung lượng Storage. Còn lại: ${formatManagementBytes(remainingBytes)}. Các bài đã chọn: ${formatManagementBytes(totalBytes)}.`
+                );
+            }
+        }
+    }
+
+    async function handleUploadSubmit(event) {
+        event.preventDefault();
+        if (isUploadingSongs) return;
+        if (isCleaningOrphans) {
+            setUploadStatus('Vui lòng chờ dọn file mồ côi hoàn tất rồi upload.', 'error');
+            return;
+        }
+
+        const pendingItems = uploadQueue.filter(item => item.status !== 'success');
+        try {
+            if (!isAdmin) throw new Error('Bạn cần đăng nhập Admin để upload bài hát.');
+            validateUploadFiles(pendingItems.map(item => item.file));
+        } catch (error) {
+            setUploadStatus(error.message, 'error');
+            return;
+        }
+
+        isUploadingSongs = true;
+        renderUploadQueue();
+        setUploadStatus('Đang kiểm tra dung lượng…', 'uploading');
+        try {
+            await validateUploadCapacity(pendingItems.map(item => item.file));
+            let uploadedCount = 0;
+            for (const [index, item] of pendingItems.entries()) {
+                item.status = 'uploading';
+                item.error = '';
+                renderUploadQueue();
+                setUploadStatus(`Đang tải ${index + 1}/${pendingItems.length}: ${item.file.name}`, 'uploading');
+                try {
+                    await uploadCloudSong({ file: item.file });
+                    item.status = 'success';
+                    uploadedCount++;
+                } catch (error) {
+                    item.status = 'error';
+                    item.error = error?.message || 'Không rõ nguyên nhân.';
+                    console.error('[LocalSound] Cloud upload failed:', item.file.name, error);
+                }
+                renderUploadQueue();
+            }
+
+            const successCount = uploadQueue.filter(item => item.status === 'success').length;
+            const failedCount = uploadQueue.length - successCount;
+            const summary = failedCount
+                ? `Đã tải lên ${successCount}/${uploadQueue.length} bài. ${failedCount} bài thất bại; bấm thử lại để tải các bài này.`
+                : `Đã tải lên thành công ${successCount} bài hát.`;
+            setUploadStatus(summary, failedCount ? 'error' : 'success');
+            showToast(summary, failedCount ? 'warning' : 'success');
+            if (!failedCount && adminUploadFileInput) adminUploadFileInput.value = '';
+
+            if (uploadedCount) {
+                // Refresh once per batch; a refresh error must not undo upload results.
+                try {
+                    await fetchSongs();
+                    await loadManagementStats();
+                } catch (error) {
+                    console.warn('[LocalSound] Could not refresh library after upload:', error);
+                    showToast('Bài hát đã được lưu. Hãy làm mới trang để cập nhật thư viện.', 'warning');
+                }
+            }
+        } catch (error) {
+            setUploadStatus(`Upload thất bại: ${error?.message || 'Không rõ nguyên nhân.'}`, 'error');
+        } finally {
+            isUploadingSongs = false;
+            renderUploadQueue();
+        }
     }
 
     async function uploadCloudSong({ file }) {
@@ -1367,26 +1414,6 @@ document.addEventListener('DOMContentLoaded', () => {
         validateUploadFile(file);
         const filename = file.name;
         const cleanTitle = filename.replace(/\.[^.]+$/, '').trim();
-        if (!cleanTitle) {
-            throw new Error('Không thể tạo title từ tên file MP3.');
-        }
-
-        let stats = null;
-        try {
-            stats = await fetchCloudStats();
-        } catch (error) {
-            console.warn('[LocalSound] Upload preflight stats unavailable; continuing upload:', error);
-        }
-
-        if (stats) {
-            const usedBytes = Number(stats.storageUsedBytes);
-            const remainingBytes = Math.max(FREE_CLOUD_QUOTA_BYTES - usedBytes, 0);
-            if (Number.isFinite(usedBytes) && usedBytes + file.size > FREE_CLOUD_QUOTA_BYTES) {
-                throw new Error(
-                    `Không đủ dung lượng Storage. Còn lại: ${formatManagementBytes(remainingBytes)}. File này: ${formatManagementBytes(file.size)}.`
-                );
-            }
-        }
 
         const { storage, tablesDB, ID } = createAppwriteServices();
         const uploadedFile = await storage.createFile({
@@ -1477,28 +1504,52 @@ document.addEventListener('DOMContentLoaded', () => {
         return updateCloudSongFolders(song, catName, isCurrentlyActive);
     }
 
-    // --- Fetch Songs ---
-    async function fetchSongs() {
-        try {
-            const loadedSongs = await fetchAppwriteSongs();
+    // --- Library Refresh ---
+    function scheduleLibraryRefresh() {
+        clearTimeout(libraryRefreshTimer);
+        libraryRefreshTimer = null;
+        if (!libraryRefreshReady || document.visibilityState !== 'visible' || navigator.onLine === false) return;
 
-            allSongs = Array.isArray(loadedSongs) ? loadedSongs : [];
+        // Returning to a tab can fire both visibilitychange and focus.
+        libraryRefreshTimer = setTimeout(() => {
+            libraryRefreshTimer = null;
+            if (document.visibilityState !== 'visible' || navigator.onLine === false) return;
+            void fetchSongs({ background: true });
+        }, LIBRARY_REFRESH_DELAY_MS);
+    }
 
+    async function fetchSongs({ background = false } = {}) {
+        while (songsFetchPromise) {
+            if (background) return songsFetchPromise;
+            // Upload/delete/category changes need a fresh request after any
+            // older request, which may have started before the mutation.
+            await songsFetchPromise;
+        }
+
+        const request = (async () => {
             try {
-                await loadUserData();
-            } catch (e) {
-                console.warn('Không tải được tùy chọn trình duyệt:', e);
-            }
+                const loadedSongs = await fetchAppwriteSongs();
+                allSongs = Array.isArray(loadedSongs) ? loadedSongs : [];
+                hasLoadedSongs = true;
 
-            if (totalCountEl) totalCountEl.textContent = allSongs.length;
-            updateCategoryBadges();
-            renderFolders();
-            filterAndRenderSongs();
-        } catch (error) {
-            console.error('Lỗi khi kết nối danh sách bài hát:', error);
-            if (songListEl) {
-                songListEl.innerHTML = `<div class="loading-spinner">Không thể kết nối danh sách bài hát.</div>`;
+                if (totalCountEl) totalCountEl.textContent = allSongs.length;
+                updateCategoryBadges();
+                renderFolders();
+                filterAndRenderSongs();
+            } catch (error) {
+                console.error('Lỗi khi kết nối danh sách bài hát:', error);
+                // A failed refresh must not replace the usable library.
+                if (!hasLoadedSongs && songListEl) {
+                    songListEl.innerHTML = `<div class="loading-spinner">Không thể kết nối danh sách bài hát.</div>`;
+                }
             }
+        })();
+
+        songsFetchPromise = request;
+        try {
+            await request;
+        } finally {
+            songsFetchPromise = null;
         }
     }
 
@@ -1556,7 +1607,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getSongCategoriesForUI(song) {
         if (!song) return [];
-        return ['nhacdo', 'trghy', 'cooking', 'karaoke', 'sleep']
+        return ['trghy', 'nhacdo', 'karaoke', 'sleep', 'cooking']
             .filter((catName) => isCloudCategoryActive(song, catName));
     }
 
@@ -1635,7 +1686,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Filter & Render Songs ---
     function filterAndRenderSongs() {
         const activeSong = getCurrentPlayingSong();
-        currentPlaylist = [...allSongs];
 
         // Filter by Category Tab
         const playerStage = document.querySelector('.player-stage');
@@ -1653,6 +1703,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (notesSection) notesSection.classList.add('hidden');
         }
 
+        currentPlaylist = [...allSongs];
         const isMobile = window.innerWidth <= 768;
 
         if (currentTab === 'nhacdo') {
@@ -1703,12 +1754,9 @@ document.addEventListener('DOMContentLoaded', () => {
         sortPlaylist();
 
         // Re-sync currentIndex to match currently playing song
-        if (activeSong) {
-            const newIdx = currentPlaylist.findIndex(s => s && s.id === activeSong.id);
-            if (newIdx !== -1) {
-                currentIndex = newIdx;
-            }
-        }
+        currentIndex = activeSong
+            ? currentPlaylist.findIndex(s => s && s.id === activeSong.id)
+            : -1;
 
         playlistCountEl.textContent = `${currentPlaylist.length} bài hát`;
         renderSongList();
@@ -1765,11 +1813,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasSleep = isSongCategoryActive(song, 'sleep');
 
             const categoryTagButtons = canEditCategories ? `
-                    <button class="cat-tag-btn ${hasNhacdo ? 'active' : ''}" data-cat="nhacdo" title="Nhạc Đỏ"><span class="icon-cat icon-nhacdo"></span></button>
                     <button class="cat-tag-btn ${hasTghy ? 'active' : ''}" data-cat="tghy" title="trghy"><span class="icon-cat icon-tghy"></span></button>
-                    <button class="cat-tag-btn ${hasCooking ? 'active' : ''}" data-cat="cooking" title="Nấu ăn"><span class="icon-cat icon-cooking"></span></button>
+                    <button class="cat-tag-btn ${hasNhacdo ? 'active' : ''}" data-cat="nhacdo" title="Nhạc Đỏ"><span class="icon-cat icon-nhacdo"></span></button>
                     <button class="cat-tag-btn ${hasKaraoke ? 'active' : ''}" data-cat="karaoke" title="Karaoke"><span class="icon-cat icon-karaoke"></span></button>
                     <button class="cat-tag-btn ${hasSleep ? 'active' : ''}" data-cat="sleep" title="Đi ngủ"><span class="icon-cat icon-sleep"></span></button>
+                    <button class="cat-tag-btn ${hasCooking ? 'active' : ''}" data-cat="cooking" title="Nấu ăn"><span class="icon-cat icon-cooking"></span></button>
                 ` : '';
 
             const songActions = canEditCategories ? `
@@ -1777,20 +1825,20 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="btn-song-more" title="Tùy chọn">⋮</button>
                     <div class="song-dropdown-menu hidden">
                         <div class="dropdown-header-label">Danh mục</div>
-                        <button class="dropdown-item dropdown-cat-item ${hasNhacdo ? 'active' : ''}" data-cat="nhacdo">
-                            <span class="icon-cat icon-nhacdo"></span> <span>Nhạc Đỏ</span> ${hasNhacdo ? '<span class="cat-check">✓</span>' : ''}
-                        </button>
                         <button class="dropdown-item dropdown-cat-item ${hasTghy ? 'active' : ''}" data-cat="tghy">
                             <span class="icon-cat icon-tghy"></span> <span>trghy</span> ${hasTghy ? '<span class="cat-check">✓</span>' : ''}
                         </button>
-                        <button class="dropdown-item dropdown-cat-item ${hasCooking ? 'active' : ''}" data-cat="cooking">
-                            <span class="icon-cat icon-cooking"></span> <span>Nấu Ăn</span> ${hasCooking ? '<span class="cat-check">✓</span>' : ''}
+                        <button class="dropdown-item dropdown-cat-item ${hasNhacdo ? 'active' : ''}" data-cat="nhacdo">
+                            <span class="icon-cat icon-nhacdo"></span> <span>Nhạc Đỏ</span> ${hasNhacdo ? '<span class="cat-check">✓</span>' : ''}
                         </button>
                         <button class="dropdown-item dropdown-cat-item ${hasKaraoke ? 'active' : ''}" data-cat="karaoke">
                             <span class="icon-cat icon-karaoke"></span> <span>Karaoke</span> ${hasKaraoke ? '<span class="cat-check">✓</span>' : ''}
                         </button>
                         <button class="dropdown-item dropdown-cat-item ${hasSleep ? 'active' : ''}" data-cat="sleep">
                             <span class="icon-cat icon-sleep"></span> <span>Đi Ngủ</span> ${hasSleep ? '<span class="cat-check">✓</span>' : ''}
+                        </button>
+                        <button class="dropdown-item dropdown-cat-item ${hasCooking ? 'active' : ''}" data-cat="cooking">
+                            <span class="icon-cat icon-cooking"></span> <span>Nấu Ăn</span> ${hasCooking ? '<span class="cat-check">✓</span>' : ''}
                         </button>
                         ${isAdmin ? '<div class="dropdown-divider"></div><button class="dropdown-item danger btn-delete-song">🗑️ Xoá bài hát</button>' : ''}
                     </div>
@@ -2010,7 +2058,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function togglePlayPause() {
-        if (currentIndex === -1 && currentPlaylist.length > 0) {
+        if (!getCurrentPlayingSong() && currentIndex === -1 && currentPlaylist.length > 0) {
             playTrack(0);
             return;
         }
@@ -2276,10 +2324,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (vinylDisc) vinylDisc.classList.remove('playing');
         }
 
-        const psTrackName = document.getElementById('ps-track-name');
-        const psPlayBtn = document.getElementById('ps-play-btn');
-        if (psPlayBtn) psPlayBtn.textContent = isPlaying ? '⏸️' : '▶️';
-
         const song = getCurrentPlayingSong();
         if (song) {
             const vinylImg = document.getElementById('vinyl-img');
@@ -2287,7 +2331,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (vinylArt && (!vinylImg || vinylImg.classList.contains('hidden'))) {
                 vinylArt.textContent = '🎵';
             }
-            if (psTrackName) psTrackName.textContent = `🎵 ${song.title}`;
             updateCurrentTrackTags();
         }
 
@@ -2343,7 +2386,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cats = getSongCategoriesForUI(song);
             let activeCatKey = null;
 
-            const priorityKeys = ['nhacdo', 'sleep', 'cooking', 'karaoke', 'trghy', 'tghy', 'xxx'];
+            const priorityKeys = ['trghy', 'tghy', 'xxx', 'nhacdo', 'karaoke', 'sleep', 'cooking'];
             for (let key of priorityKeys) {
                 if (cats.includes(key)) {
                     activeCatKey = key;
@@ -2403,11 +2446,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (songNameEl) songNameEl.textContent = `🎵 ${song.title}`;
 
         const categories = [
+            { key: 'trghy', label: '<span class="icon-cat icon-trghy"></span>' },
             { key: 'nhacdo', label: '<span class="icon-cat icon-nhacdo" style="margin-right: 6px;"></span> Nhạc Đỏ' },
-            { key: 'sleep', label: '<span class="icon-cat icon-sleep" style="margin-right: 6px;"></span> Đi Ngủ' },
-            { key: 'cooking', label: '<span class="icon-cat icon-cooking" style="margin-right: 6px;"></span> Nấu Ăn' },
             { key: 'karaoke', label: '<span class="icon-cat icon-karaoke" style="margin-right: 6px;"></span> Karaoke' },
-            { key: 'trghy', label: '<span class="icon-cat icon-trghy"></span>' }
+            { key: 'sleep', label: '<span class="icon-cat icon-sleep" style="margin-right: 6px;"></span> Đi Ngủ' },
+            { key: 'cooking', label: '<span class="icon-cat icon-cooking" style="margin-right: 6px;"></span> Nấu Ăn' }
         ];
 
         const songCats = getSongCategoriesForUI(song);
@@ -2629,8 +2672,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (adminUploadBtn && uploadPlaceholderModal) {
             adminUploadBtn.addEventListener('click', () => {
                 if (!isAdmin) return;
-                setUploadStatus('');
-                updateUploadFileMeta();
+                renderUploadQueue();
                 uploadPlaceholderModal.classList.add('active');
                 adminUploadFileInput?.focus();
             });
@@ -2642,32 +2684,7 @@ document.addEventListener('DOMContentLoaded', () => {
             adminUploadFileInput.addEventListener('change', updateUploadFileMeta);
         }
         if (adminUploadForm) {
-            adminUploadForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
-                if (adminUploadSubmit) adminUploadSubmit.disabled = true;
-                setUploadStatus('Uploading...', 'uploading');
-
-                try {
-                    await uploadCloudSong({
-                        file: adminUploadFileInput?.files?.[0]
-                    });
-
-                    adminUploadForm.reset();
-                    updateUploadFileMeta();
-                    setUploadStatus('Upload thành công.', 'success');
-                    uploadPlaceholderModal?.classList.remove('active');
-                    await fetchSongs();
-                    await loadManagementStats().catch(error => {
-                        console.warn('[LocalSound] Could not refresh management stats after upload:', error);
-                    });
-                    showToast('Upload thành công.', 'success');
-                } catch (error) {
-                    console.error('[LocalSound] Cloud upload failed:', error);
-                    setUploadStatus(`Upload thất bại: ${error?.message || 'Không rõ nguyên nhân.'}`, 'error');
-                } finally {
-                    if (adminUploadSubmit) adminUploadSubmit.disabled = false;
-                }
-            });
+            adminUploadForm.addEventListener('submit', handleUploadSubmit);
         }
 
         // Mobile Bottom Tab Listeners
@@ -2734,7 +2751,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
             } else {
                 const catCleanMap = { nhacdo: 'Nhạc Đỏ', sleep: 'Đi Ngủ', cooking: 'Nấu Ăn', karaoke: 'Karaoke', trghy: 'trghy', tghy: 'trghy', xxx: 'trghy' };
-                const priorityKeys = ['nhacdo', 'sleep', 'cooking', 'karaoke', 'trghy', 'tghy', 'xxx'];
+                const priorityKeys = ['trghy', 'tghy', 'xxx', 'nhacdo', 'karaoke', 'sleep', 'cooking'];
                 let activeCatKey = null;
                 for (let key of priorityKeys) {
                     if (cats.includes(key)) {
@@ -2828,7 +2845,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const pmFavBtn = document.getElementById('pm-fav-btn');
         const pmModeBtn = document.getElementById('pm-mode-btn');
         const pmTimerBtn = document.getElementById('pm-timer-btn');
-        const pmEqBtn = document.getElementById('pm-eq-btn');
         const pmModeLabel = document.getElementById('pm-mode-label');
 
         if (pmFavBtn) setupFavoritePressHandler(pmFavBtn);
@@ -2857,13 +2873,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            if (pmEqBtn) {
-                pmEqBtn.addEventListener('click', () => {
-                    playerMoreModal.classList.remove('active');
-                    const eqModal = document.getElementById('eq-modal');
-                    if (eqModal) eqModal.classList.add('active');
-                });
-            }
         }
 
         // Restore Mobile Tab View from saved state (remembers tab after F5 refresh)
@@ -3059,36 +3068,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        // Power Saver Listeners
-        if (powerSaverBtn) {
-            powerSaverBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                togglePowerSaverMode(undefined, false, true);
-            });
-        }
-
-        const exitPowerSaverBtn = document.getElementById('exit-power-saver-btn');
-        if (exitPowerSaverBtn) {
-            exitPowerSaverBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                togglePowerSaverMode(false, false, true);
-            });
-        }
-
-        const psPlayBtn = document.getElementById('ps-play-btn');
-        const psPrevBtn = document.getElementById('ps-prev-btn');
-        const psNextBtn = document.getElementById('ps-next-btn');
-
-        if (psPlayBtn) psPlayBtn.addEventListener('click', (e) => { e.stopPropagation(); togglePlayPause(); });
-        if (psPrevBtn) psPrevBtn.addEventListener('click', (e) => { e.stopPropagation(); playPrevTrack(); });
-        if (psNextBtn) psNextBtn.addEventListener('click', (e) => { e.stopPropagation(); playNextTrack(); });
-
         // Modals
-        const eqToggleBtn = document.getElementById('eq-toggle-btn');
-        const closeEqBtn = document.getElementById('close-eq');
-        if (eqToggleBtn && eqModal) eqToggleBtn.addEventListener('click', () => eqModal.classList.add('active'));
-        if (closeEqBtn && eqModal) closeEqBtn.addEventListener('click', () => eqModal.classList.remove('active'));
-
         const timerToggleBtn = document.getElementById('timer-toggle-btn');
         const closeTimerBtn = document.getElementById('close-timer');
         if (timerToggleBtn && timerModal) timerToggleBtn.addEventListener('click', () => timerModal.classList.add('active'));
@@ -3099,35 +3079,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (shortcutHelpBtn && shortcutModal) shortcutHelpBtn.addEventListener('click', () => shortcutModal.classList.add('active'));
         if (closeShortcutBtn && shortcutModal) closeShortcutBtn.addEventListener('click', () => shortcutModal.classList.remove('active'));
 
-        [eqModal, timerModal, shortcutModal, managementDataModal, adminNotesModal].forEach(modal => {
+        [timerModal, shortcutModal, managementDataModal, adminNotesModal].forEach(modal => {
             if (modal) {
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) modal.classList.remove('active');
                 });
             }
-        });
-
-        // Equalizer Sliders
-        document.querySelectorAll('.eq-slider').forEach(slider => {
-            slider.addEventListener('input', (e) => {
-                const bandIndex = parseInt(e.target.dataset.band);
-                const val = parseFloat(e.target.value);
-                if (eqBands[bandIndex]) {
-                    eqBands[bandIndex].gain.value = val;
-                }
-                if (e.target.nextElementSibling) {
-                    e.target.nextElementSibling.textContent = `${val > 0 ? '+' : ''}${val}dB`;
-                }
-            });
-        });
-
-        // Equalizer Presets
-        document.querySelectorAll('.preset-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                applyEQPreset(btn.dataset.preset);
-            });
         });
 
         // Sleep Timer Presets & Custom Input
@@ -3162,24 +3119,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Keyboard Shortcuts
         document.addEventListener('keydown', handleShortcuts);
-    }
-
-    function applyEQPreset(preset) {
-        const presets = {
-            flat: [0, 0, 0, 0, 0],
-            bass: [7, 4, 0, -1, -2],
-            pop: [-1, 2, 4, 3, -1],
-            rock: [5, 2, -1, 3, 5],
-            vocal: [-3, 0, 4, 5, 2]
-        };
-        const values = presets[preset] || presets.flat;
-        document.querySelectorAll('.eq-slider').forEach((slider, idx) => {
-            slider.value = values[idx];
-            if (eqBands[idx]) eqBands[idx].gain.value = values[idx];
-            if (slider.nextElementSibling) {
-                slider.nextElementSibling.textContent = `${values[idx] > 0 ? '+' : ''}${values[idx]}dB`;
-            }
-        });
     }
 
     // --- Sleep Timer Countdown Logic ---
@@ -3255,8 +3194,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function drawVisualizer() {
         if (!analyserNode || !canvasCtx || !canvas) return;
         requestAnimationFrame(drawVisualizer);
-
-        if (isPowerSaverON) return;
 
         const bufferLength = analyserNode.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
