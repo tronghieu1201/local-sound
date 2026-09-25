@@ -213,8 +213,17 @@ body {
     background-image: url("../assets/logo/cooking.png");
 }
 
+.icon-cat.icon-alone {
+    background-image: url("../assets/logo/person.png");
+}
+
 .icon-cat.icon-karaoke {
     background-image: url("../assets/logo/karaoke.png");
+}
+
+.icon-cat.icon-giaitri,
+.icon-cat.icon-game {
+    background-image: url("../assets/logo/game-over.png");
 }
 
 .icon-cat.icon-sleep {
@@ -2758,4 +2767,104 @@ kbd {
     }
 }
 
+/* ==========================================================================
+   Lucide + Morphicons Icon System
+   ========================================================================== */
 
+/* Prev / Next buttons: span containers behave like the original SVG */
+#prev-icon-container,
+#next-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+}
+
+/* Sidebar admin icon containers */
+.sidebar-icon-container {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    flex-shrink: 0;
+    opacity: 0.75;
+}
+
+.folder-item:hover .sidebar-icon-container {
+    opacity: 1;
+}
+
+/* Prev / Next micro-interactions */
+#prev-btn,
+#next-btn {
+    transition: transform 120ms ease, color 120ms ease;
+}
+
+#prev-btn:hover,
+#next-btn:hover {
+    transform: scale(1.12);
+    color: var(--text-main);
+}
+
+#prev-btn:active,
+#next-btn:active {
+    transform: scale(0.88);
+    transition-duration: 80ms;
+}
+
+/* Mode cycle button icon container */
+.mode-icon-svg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    flex-shrink: 0;
+}
+
+#mode-repeat-svg {
+    display: block;
+}
+
+/* Mode cycle active states */
+.btn-mode-cycle.mode-one {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: rgba(0, 217, 245, 0.1);
+}
+
+.btn-mode-cycle.mode-shuffle {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(204, 134, 209, 0.1);
+}
+
+.btn-mode-cycle.mode-sequential {
+    /* default styling */
+}
+
+/* Auth button icon containers (Login, Upload, Logout) */
+.btn-icon-svg {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
+    margin-right: 4px;
+    flex-shrink: 0;
+}
+
+/* Play/Pause persistent SVG sizing */
+#play-pause-svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+}
+
+/* Volume persistent SVG sizing */
+#vol-svg {
+    display: block;
+}
+
+/* Mini player persistent SVG sizing */
+#mini-pp-svg {
+    display: block;
+}

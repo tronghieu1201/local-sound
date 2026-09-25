@@ -7,6 +7,8 @@
     <title>LocalSound - Trình Nghe Nhạc Cloud</title>
     <link rel="icon" type="image/png" href="assets/logo/logo.png">
     <link rel="stylesheet" href="src/styles.css">
+    <!-- Lucide + Morphicons icon system (ESM module, loaded before app.js) -->
+    <script type="module" src="src/icons.js"></script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -55,6 +57,11 @@
                     <span>Karaoke</span>
                     <span class="count-badge" id="karaoke-count">0</span>
                 </button>
+                <button class="nav-item" data-tab="giaitri">
+                    <span class="icon-cat icon-giaitri"></span>
+                    <span>Giải Trí</span>
+                    <span class="count-badge" id="giaitri-count">0</span>
+                </button>
                 <button class="nav-item" data-tab="sleep">
                     <span class="icon-cat icon-sleep"></span>
                     <span>Đi Ngủ</span>
@@ -64,6 +71,11 @@
                     <span class="icon-cat icon-cooking"></span>
                     <span>Nấu Ăn</span>
                     <span class="count-badge" id="cooking-count">0</span>
+                </button>
+                <button class="nav-item" data-tab="alone">
+                    <span class="icon-cat icon-alone"></span>
+                    <span>Alone</span>
+                    <span class="count-badge" id="alone-count">0</span>
                 </button>
                 <button class="nav-item" data-tab="note">
                     <span class="icon-cat icon-note"></span>
@@ -81,13 +93,13 @@
             <div class="sidebar-section admin-sidebar-section hidden" id="admin-sidebar-section">
                 <h3>QUẢN TRỊ</h3>
                 <button class="folder-item" id="settings-sidebar-btn" type="button">
-                    <span class="folder-dot"></span> Cài đặt
+                    <span class="sidebar-icon-container" id="sidebar-settings-icon"></span> Cài đặt
                 </button>
                 <button class="folder-item hidden" id="management-data-btn" type="button">
-                    <span class="folder-dot"></span> Quản lý data
+                    <span class="sidebar-icon-container" id="sidebar-database-icon"></span> Quản lý data
                 </button>
                 <button class="folder-item hidden" id="admin-notes-btn" type="button">
-                    <span class="folder-dot"></span>
+                    <span class="sidebar-icon-container" id="sidebar-notes-icon"></span>
                     <span>Nhận note</span>
                     <span class="count-badge hidden" id="admin-notes-count">0</span>
                 </button>
@@ -125,11 +137,20 @@
                     </button>
                 </div>
                 <div class="auth-controls hidden" id="auth-controls">
-                    <button class="auth-btn" id="auth-login-btn" type="button">Đăng nhập</button>
+                    <button class="auth-btn" id="auth-login-btn" type="button">
+                        <span class="btn-icon-svg" id="login-icon-container"></span>
+                        Đăng nhập
+                    </button>
                     <div class="admin-session hidden" id="admin-session">
                         <span class="admin-user-label" id="admin-user-label"></span>
-                        <button class="auth-btn" id="admin-upload-btn" type="button">Upload</button>
-                        <button class="auth-btn danger" id="admin-logout-btn" type="button">Đăng xuất</button>
+                        <button class="auth-btn" id="admin-upload-btn" type="button">
+                            <span class="btn-icon-svg" id="upload-icon-container"></span>
+                            Upload
+                        </button>
+                        <button class="auth-btn danger" id="admin-logout-btn" type="button">
+                            <span class="btn-icon-svg" id="logout-icon-container"></span>
+                            Đăng xuất
+                        </button>
                     </div>
                 </div>
             </header>
@@ -178,31 +199,31 @@
                     <div class="control-buttons">
                         <!-- Consolidated Loop / Repeat / Shuffle Mode Button -->
                         <button class="btn-mode-cycle" id="mode-cycle-btn" title="Chuyển chế độ lặp">
-                            <span id="mode-icon">🔁</span>
+                            <!-- morphicons/dom: Repeat ↔ Repeat1 (ONE path, morphicons merges all sub-elements) -->
+                            <span id="mode-icon-container" class="mode-icon-svg">
+                                <svg id="mode-repeat-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18" aria-hidden="true">
+                                    <path id="mode-path"></path>
+                                </svg>
+                                <!-- Shuffle static icon – shown only when mode=shuffle -->
+                                <span id="mode-shuffle-icon" style="display:none;line-height:0;"></span>
+                            </span>
                             <span id="mode-label">Theo thứ tự</span>
                         </button>
 
                         <div class="play-group">
                             <button class="btn-ctrl" id="prev-btn" title="Bài trước đó (P)">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <polygon points="19 20 9 12 19 4 19 20"></polygon>
-                                    <line x1="5" y1="19" x2="5" y2="5" stroke="currentColor" stroke-width="2"></line>
-                                </svg>
+                                <!-- SkipBack – static Lucide icon -->
+                                <span id="prev-icon-container"></span>
                             </button>
                             <button class="btn-play" id="play-btn" title="Phát / Tạm dừng (Space)">
-                                <svg id="play-icon" viewBox="0 0 24 24" fill="currentColor">
-                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                </svg>
-                                <svg id="pause-icon" class="hidden" viewBox="0 0 24 24" fill="currentColor">
-                                    <rect x="6" y="4" width="4" height="16"></rect>
-                                    <rect x="14" y="4" width="4" height="16"></rect>
+                                <!-- ONE persistent path — morphicons writes to this -->
+                                <svg id="play-pause-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true">
+                                    <path id="pp-path"></path>
                                 </svg>
                             </button>
                             <button class="btn-ctrl" id="next-btn" title="Bài tiếp theo (N)">
-                                <svg viewBox="0 0 24 24" fill="currentColor">
-                                    <polygon points="5 4 15 12 5 20 5 4"></polygon>
-                                    <line x1="19" y1="5" x2="19" y2="19" stroke="currentColor" stroke-width="2"></line>
-                                </svg>
+                                <!-- SkipForward – static Lucide icon -->
+                                <span id="next-icon-container"></span>
                             </button>
                         </div>
 
@@ -215,15 +236,9 @@
                     <!-- Volume Control -->
                     <div class="volume-container">
                         <button class="btn-icon-small" id="mute-btn" title="Tắt tiếng (M)">
-                            <svg id="vol-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                            </svg>
-                            <svg id="mute-icon" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2">
-                                <line x1="1" y1="1" x2="23" y2="23"></line>
-                                <path d="M9 9l3 3m-3 3l3-3"></path>
-                                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                            <!-- ONE persistent path — morphicons writes to this -->
+                            <svg id="vol-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true">
+                                <path id="vol-path"></path>
                             </svg>
                         </button>
                         <div class="slider-wrapper volume-wrapper">
@@ -544,12 +559,9 @@
         </div>
         <div class="mini-player-controls">
             <button class="mini-btn-play" id="mini-play-btn" title="Phát / Tạm dừng">
-                <svg id="mini-play-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                </svg>
-                <svg id="mini-pause-icon" class="hidden" viewBox="0 0 24 24" fill="currentColor">
-                    <rect x="6" y="4" width="4" height="16"></rect>
-                    <rect x="14" y="4" width="4" height="16"></rect>
+                <!-- ONE persistent path — morphicons writes to this -->
+                <svg id="mini-pp-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22" aria-hidden="true">
+                    <path id="mini-pp-path"></path>
                 </svg>
             </button>
         </div>

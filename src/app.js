@@ -108,13 +108,15 @@ document.addEventListener('DOMContentLoaded', () => {
         audio.crossOrigin = 'anonymous';
     }
     const playBtn = document.getElementById('play-btn');
-    const playIcon = document.getElementById('play-icon');
-    const pauseIcon = document.getElementById('pause-icon');
+    // play-icon / pause-icon are now managed by icons.js (morphicons)
+    const playIcon = null;
+    const pauseIcon = null;
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
 
     const modeCycleBtn = document.getElementById('mode-cycle-btn');
-    const modeIcon = document.getElementById('mode-icon');
+    // modeIcon and modeLabel: modeLabel still exists; modeIcon replaced by icons.js
+    const modeIcon = null; // managed by window.LocalSoundIcons
     const modeLabel = document.getElementById('mode-label');
 
     const seekSlider = document.getElementById('seek-slider');
@@ -125,8 +127,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const volumeSlider = document.getElementById('volume-slider');
     const volumeFill = document.getElementById('volume-fill');
     const muteBtn = document.getElementById('mute-btn');
-    const volIcon = document.getElementById('vol-icon');
-    const muteIcon = document.getElementById('mute-icon');
+    // vol-icon and mute-icon are now managed by icons.js (morphicons)
+    const volIcon = null;
+    const muteIcon = null;
 
     const currentTitle = document.getElementById('current-title');
     const currentTags = document.getElementById('current-tags');
@@ -138,7 +141,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const nhacdoCountEl = document.getElementById('nhacdo-count');
     const tghyCountEl = document.getElementById('tghy-count');
     const cookingCountEl = document.getElementById('cooking-count');
+    const aloneCountEl = document.getElementById('alone-count');
     const karaokeCountEl = document.getElementById('karaoke-count');
+    const giaitriCountEl = document.getElementById('giaitri-count');
     const sleepCountEl = document.getElementById('sleep-count');
 
     const playlistCountEl = document.getElementById('playlist-count');
@@ -1576,7 +1581,9 @@ document.addEventListener('DOMContentLoaded', () => {
         tghy: 'trghy',
         xxx: 'trghy',
         cooking: 'Nấu Ăn',
+        alone: 'Alone',
         karaoke: 'Karaoke',
+        giaitri: 'Giải Trí',
         sleep: 'Đi Ngủ'
     });
 
@@ -1595,7 +1602,9 @@ document.addEventListener('DOMContentLoaded', () => {
             tghy: ['trghy', 'tghy', 'xxx'],
             xxx: ['trghy', 'tghy', 'xxx'],
             cooking: ['cooking'],
+            alone: ['alone', 'person'],
             karaoke: ['karaoke'],
+            giaitri: ['giaitri', 'giai tri', 'game', 'game-over'],
             sleep: ['sleep']
         }[catName] || [];
 
@@ -1607,7 +1616,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function getSongCategoriesForUI(song) {
         if (!song) return [];
-        return ['trghy', 'nhacdo', 'karaoke', 'sleep', 'cooking']
+        return ['trghy', 'nhacdo', 'karaoke', 'giaitri', 'sleep', 'cooking', 'alone']
             .filter((catName) => isCloudCategoryActive(song, catName));
     }
 
@@ -1620,7 +1629,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let nhacdoCount = 0;
         let tghyCount = 0;
         let cookingCount = 0;
+        let aloneCount = 0;
         let karaokeCount = 0;
+        let giaitriCount = 0;
         let sleepCount = 0;
 
         allSongs.forEach(song => {
@@ -1629,14 +1640,18 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cats.includes('nhacdo')) nhacdoCount++;
             if (isTrghyCategory(cats)) tghyCount++;
             if (cats.includes('cooking')) cookingCount++;
+            if (cats.includes('alone')) aloneCount++;
             if (cats.includes('karaoke')) karaokeCount++;
+            if (cats.includes('giaitri')) giaitriCount++;
             if (cats.includes('sleep')) sleepCount++;
         });
 
         if (nhacdoCountEl) nhacdoCountEl.textContent = nhacdoCount;
         if (tghyCountEl) tghyCountEl.textContent = tghyCount;
         if (cookingCountEl) cookingCountEl.textContent = cookingCount;
+        if (aloneCountEl) aloneCountEl.textContent = aloneCount;
         if (karaokeCountEl) karaokeCountEl.textContent = karaokeCount;
+        if (giaitriCountEl) giaitriCountEl.textContent = giaitriCount;
         if (sleepCountEl) sleepCountEl.textContent = sleepCount;
     }
 
@@ -1715,9 +1730,15 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (currentTab === 'cooking') {
             currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('cooking'));
             playlistHeadingEl.textContent = isMobile ? 'Nấu Ăn' : 'Danh Sách Bài Hát Nấu Ăn';
+        } else if (currentTab === 'alone') {
+            currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('alone'));
+            playlistHeadingEl.textContent = isMobile ? 'Alone' : 'Danh Sách Bài Hát Alone';
         } else if (currentTab === 'karaoke') {
             currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('karaoke'));
             playlistHeadingEl.textContent = isMobile ? 'Karaoke' : 'Danh Sách Bài Hát Karaoke';
+        } else if (currentTab === 'giaitri') {
+            currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('giaitri'));
+            playlistHeadingEl.textContent = isMobile ? 'Giải Trí' : 'Danh Sách Bài Hát Giải Trí';
         } else if (currentTab === 'sleep') {
             currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('sleep'));
             playlistHeadingEl.textContent = isMobile ? 'Đi Ngủ' : 'Danh Sách Bài Hát Đi Ngủ';
@@ -1784,7 +1805,9 @@ document.addEventListener('DOMContentLoaded', () => {
             nhacdo: 'Nhạc Đỏ',
             tghy: 'trghy',
             cooking: 'Nấu Ăn',
+            alone: 'Alone',
             karaoke: 'Karaoke',
+            giaitri: 'Giải Trí',
             sleep: 'Đi Ngủ'
         };
 
@@ -1809,15 +1832,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasNhacdo = isSongCategoryActive(song, 'nhacdo');
             const hasTghy = isSongCategoryActive(song, 'trghy');
             const hasCooking = isSongCategoryActive(song, 'cooking');
+            const hasAlone = isSongCategoryActive(song, 'alone');
             const hasKaraoke = isSongCategoryActive(song, 'karaoke');
+            const hasGiaitri = isSongCategoryActive(song, 'giaitri');
             const hasSleep = isSongCategoryActive(song, 'sleep');
 
             const categoryTagButtons = canEditCategories ? `
                     <button class="cat-tag-btn ${hasTghy ? 'active' : ''}" data-cat="tghy" title="trghy"><span class="icon-cat icon-tghy"></span></button>
                     <button class="cat-tag-btn ${hasNhacdo ? 'active' : ''}" data-cat="nhacdo" title="Nhạc Đỏ"><span class="icon-cat icon-nhacdo"></span></button>
                     <button class="cat-tag-btn ${hasKaraoke ? 'active' : ''}" data-cat="karaoke" title="Karaoke"><span class="icon-cat icon-karaoke"></span></button>
+                    <button class="cat-tag-btn ${hasGiaitri ? 'active' : ''}" data-cat="giaitri" title="Giải Trí"><span class="icon-cat icon-giaitri"></span></button>
                     <button class="cat-tag-btn ${hasSleep ? 'active' : ''}" data-cat="sleep" title="Đi ngủ"><span class="icon-cat icon-sleep"></span></button>
                     <button class="cat-tag-btn ${hasCooking ? 'active' : ''}" data-cat="cooking" title="Nấu ăn"><span class="icon-cat icon-cooking"></span></button>
+                    <button class="cat-tag-btn ${hasAlone ? 'active' : ''}" data-cat="alone" title="Alone"><span class="icon-cat icon-alone"></span></button>
                 ` : '';
 
             const songActions = canEditCategories ? `
@@ -1834,11 +1861,17 @@ document.addEventListener('DOMContentLoaded', () => {
                         <button class="dropdown-item dropdown-cat-item ${hasKaraoke ? 'active' : ''}" data-cat="karaoke">
                             <span class="icon-cat icon-karaoke"></span> <span>Karaoke</span> ${hasKaraoke ? '<span class="cat-check">✓</span>' : ''}
                         </button>
+                        <button class="dropdown-item dropdown-cat-item ${hasGiaitri ? 'active' : ''}" data-cat="giaitri">
+                            <span class="icon-cat icon-giaitri"></span> <span>Giải Trí</span> ${hasGiaitri ? '<span class="cat-check">✓</span>' : ''}
+                        </button>
                         <button class="dropdown-item dropdown-cat-item ${hasSleep ? 'active' : ''}" data-cat="sleep">
                             <span class="icon-cat icon-sleep"></span> <span>Đi Ngủ</span> ${hasSleep ? '<span class="cat-check">✓</span>' : ''}
                         </button>
                         <button class="dropdown-item dropdown-cat-item ${hasCooking ? 'active' : ''}" data-cat="cooking">
                             <span class="icon-cat icon-cooking"></span> <span>Nấu Ăn</span> ${hasCooking ? '<span class="cat-check">✓</span>' : ''}
+                        </button>
+                            <button class="dropdown-item dropdown-cat-item ${hasAlone ? 'active' : ''}" data-cat="alone">
+                            <span class="icon-cat icon-alone"></span> <span>Alone</span> ${hasAlone ? '<span class="cat-check">✓</span>' : ''}
                         </button>
                         ${isAdmin ? '<div class="dropdown-divider"></div><button class="dropdown-item danger btn-delete-song">🗑️ Xoá bài hát</button>' : ''}
                     </div>
@@ -2043,6 +2076,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!song || !song.url) return;
 
         currentPlayingSong = song;
+        if (currentTimeEl) currentTimeEl.textContent = '00:00';
+        if (durationTimeEl) durationTimeEl.textContent = '00:00';
+        if (seekSlider) seekSlider.value = 0;
+        if (seekFill) seekFill.style.width = '0%';
         audio.src = song.url;
         audio.play().then(() => {
             isPlaying = true;
@@ -2125,14 +2162,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const seekWrapper = document.getElementById('progress-wrapper');
     const seekTooltip = document.getElementById('seek-tooltip');
 
+    // Sync duration display when metadata is known
+    audio.addEventListener('loadedmetadata', () => {
+        if (durationTimeEl) {
+            durationTimeEl.textContent = Number.isFinite(audio.duration) && audio.duration > 0
+                ? formatTime(audio.duration)
+                : '00:00';
+        }
+    });
+    audio.addEventListener('durationchange', () => {
+        if (durationTimeEl) {
+            durationTimeEl.textContent = Number.isFinite(audio.duration) && audio.duration > 0
+                ? formatTime(audio.duration)
+                : '00:00';
+        }
+    });
+
+    // Sync Play/Pause morph icon directly from audio events (source of truth)
+    audio.addEventListener('play', () => {
+        if (window.LocalSoundIcons) window.LocalSoundIcons.setPlaying(true);
+    });
+    audio.addEventListener('pause', () => {
+        if (window.LocalSoundIcons) window.LocalSoundIcons.setPlaying(false);
+    });
+    audio.addEventListener('ended', () => {
+        if (window.LocalSoundIcons) window.LocalSoundIcons.setPlaying(false);
+    });
+
     audio.addEventListener('timeupdate', () => {
-        if (!isNaN(audio.duration) && audio.duration > 0) {
-            durationTimeEl.textContent = formatTime(audio.duration);
+        if (!isSeeking && currentTimeEl) {
+            currentTimeEl.textContent = formatTime(audio.currentTime);
+        }
+        if (Number.isFinite(audio.duration) && audio.duration > 0) {
+            if (durationTimeEl) durationTimeEl.textContent = formatTime(audio.duration);
             if (!isSeeking) {
                 const percent = (audio.currentTime / audio.duration) * 100;
-                seekSlider.value = percent;
-                seekFill.style.width = `${percent}%`;
-                currentTimeEl.textContent = formatTime(audio.currentTime);
+                if (seekSlider) seekSlider.value = percent;
+                if (seekFill) seekFill.style.width = `${percent}%`;
             }
             if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession) {
                 try {
@@ -2153,17 +2219,17 @@ document.addEventListener('DOMContentLoaded', () => {
         seekSlider.addEventListener('input', () => {
             isSeeking = true;
             const percent = parseFloat(seekSlider.value);
-            seekFill.style.width = `${percent}%`;
-            if (!isNaN(audio.duration) && audio.duration > 0) {
+            if (seekFill) seekFill.style.width = `${percent}%`;
+            if (Number.isFinite(audio.duration) && audio.duration > 0) {
                 const targetTime = (percent / 100) * audio.duration;
-                currentTimeEl.textContent = formatTime(targetTime);
+                if (currentTimeEl) currentTimeEl.textContent = formatTime(targetTime);
             }
         });
     }
 
     const commitSeek = () => {
         if (isSeeking) {
-            if (!isNaN(audio.duration) && audio.duration > 0) {
+            if (Number.isFinite(audio.duration) && audio.duration > 0) {
                 const percent = parseFloat(seekSlider.value);
                 audio.currentTime = (percent / 100) * audio.duration;
             }
@@ -2181,25 +2247,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (seekWrapper) {
         seekWrapper.addEventListener('click', (e) => {
             if (e.target === seekSlider) return;
-            if (!isNaN(audio.duration) && audio.duration > 0) {
+            if (Number.isFinite(audio.duration) && audio.duration > 0) {
                 const rect = seekWrapper.getBoundingClientRect();
                 const offsetX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
                 const percent = (offsetX / rect.width) * 100;
                 const targetTime = (percent / 100) * audio.duration;
-                seekSlider.value = percent;
-                seekFill.style.width = `${percent}%`;
+                if (seekSlider) seekSlider.value = percent;
+                if (seekFill) seekFill.style.width = `${percent}%`;
                 audio.currentTime = targetTime;
-                currentTimeEl.textContent = formatTime(targetTime);
+                if (currentTimeEl) currentTimeEl.textContent = formatTime(targetTime);
             }
         });
 
         seekWrapper.addEventListener('mousemove', (e) => {
-            if (seekTooltip && !isNaN(audio.duration) && audio.duration > 0) {
+            if (seekTooltip && Number.isFinite(audio.duration) && audio.duration > 0) {
                 const rect = seekWrapper.getBoundingClientRect();
                 const offsetX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
                 const hoverPercent = offsetX / rect.width;
                 const hoverTime = hoverPercent * audio.duration;
-
                 seekTooltip.textContent = formatTime(hoverTime);
                 seekTooltip.style.left = `${offsetX}px`;
                 seekTooltip.classList.remove('hidden');
@@ -2235,12 +2300,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateVolumeIcons() {
-        if (audio.muted || audio.volume === 0) {
-            if (volIcon) volIcon.classList.add('hidden');
-            if (muteIcon) muteIcon.classList.remove('hidden');
-        } else {
-            if (volIcon) volIcon.classList.remove('hidden');
-            if (muteIcon) muteIcon.classList.add('hidden');
+        const isMuted = audio.muted || audio.volume === 0;
+        if (window.LocalSoundIcons) {
+            window.LocalSoundIcons.setMuted(isMuted);
         }
     }
 
@@ -2288,8 +2350,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateMiniPlayerUI() {
-        const miniPlayIcon = document.getElementById('mini-play-icon');
-        const miniPauseIcon = document.getElementById('mini-pause-icon');
         const miniDisc = document.getElementById('mini-disc');
         const miniTitle = document.getElementById('mini-title');
         const miniArtist = document.getElementById('mini-artist');
@@ -2300,29 +2360,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (miniArtist) miniArtist.textContent = normalizeFolderList(song.folders).join(' · ') || 'LocalSound';
         }
 
-        if (isPlaying) {
-            if (miniPlayIcon) miniPlayIcon.classList.add('hidden');
-            if (miniPauseIcon) miniPauseIcon.classList.remove('hidden');
-            if (miniDisc) miniDisc.classList.add('playing');
-        } else {
-            if (miniPlayIcon) miniPlayIcon.classList.remove('hidden');
-            if (miniPauseIcon) miniPauseIcon.classList.add('hidden');
-            if (miniDisc) miniDisc.classList.remove('playing');
+        if (window.LocalSoundIcons) {
+            window.LocalSoundIcons.setPlaying(isPlaying);
         }
+        if (miniDisc) miniDisc.classList.toggle('playing', isPlaying);
         updateMiniPlayerVisibility();
     }
 
     // --- UI Update Helpers ---
     function updatePlayerUI() {
-        if (isPlaying) {
-            if (playIcon) playIcon.classList.add('hidden');
-            if (pauseIcon) pauseIcon.classList.remove('hidden');
-            if (vinylDisc) vinylDisc.classList.add('playing');
-        } else {
-            if (playIcon) playIcon.classList.remove('hidden');
-            if (pauseIcon) pauseIcon.classList.add('hidden');
-            if (vinylDisc) vinylDisc.classList.remove('playing');
+        // Sync Play/Pause morph icon
+        if (window.LocalSoundIcons) {
+            window.LocalSoundIcons.setPlaying(isPlaying);
         }
+
+        if (vinylDisc) vinylDisc.classList.toggle('playing', isPlaying);
 
         const song = getCurrentPlayingSong();
         if (song) {
@@ -2376,7 +2428,9 @@ document.addEventListener('DOMContentLoaded', () => {
             nhacdo: { iconHtml: '<span class="icon-cat icon-nhacdo" style="margin-right: 4px;"></span>', label: 'Nhạc Đỏ', color: '#00d9f5' },
             sleep: { iconHtml: '<span class="icon-cat icon-sleep" style="margin-right: 4px;"></span>', label: 'Đi Ngủ', color: '#a855f7' },
             cooking: { iconHtml: '<span class="icon-cat icon-cooking" style="margin-right: 4px;"></span>', label: 'Nấu Ăn', color: '#f59e0b' },
+            alone: { iconHtml: '<span class="icon-cat icon-alone" style="margin-right: 4px;"></span>', label: 'Alone', color: '#38bdf8' },
             karaoke: { iconHtml: '<span class="icon-cat icon-karaoke" style="margin-right: 4px;"></span>', label: 'Karaoke', color: '#ec4899' },
+            giaitri: { iconHtml: '<span class="icon-cat icon-giaitri" style="margin-right: 4px;"></span>', label: 'Giải Trí', color: '#10b981' },
             trghy: { iconHtml: '<span class="icon-cat icon-trghy" style="margin-right: 4px;"></span>', label: '<span class="icon-cat icon-trghy"></span>', color: '#ef4444' },
             tghy: { iconHtml: '<span class="icon-cat icon-trghy" style="margin-right: 4px;"></span>', label: '<span class="icon-cat icon-trghy"></span>', color: '#ef4444' },
             xxx: { iconHtml: '<span class="icon-cat icon-trghy" style="margin-right: 4px;"></span>', label: '<span class="icon-cat icon-trghy"></span>', color: '#ef4444' }
@@ -2386,7 +2440,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const cats = getSongCategoriesForUI(song);
             let activeCatKey = null;
 
-            const priorityKeys = ['trghy', 'tghy', 'xxx', 'nhacdo', 'karaoke', 'sleep', 'cooking'];
+            const priorityKeys = ['trghy', 'tghy', 'xxx', 'nhacdo', 'karaoke', 'giaitri', 'sleep', 'cooking', 'alone'];
             for (let key of priorityKeys) {
                 if (cats.includes(key)) {
                     activeCatKey = key;
@@ -2449,8 +2503,10 @@ document.addEventListener('DOMContentLoaded', () => {
             { key: 'trghy', label: '<span class="icon-cat icon-trghy"></span>' },
             { key: 'nhacdo', label: '<span class="icon-cat icon-nhacdo" style="margin-right: 6px;"></span> Nhạc Đỏ' },
             { key: 'karaoke', label: '<span class="icon-cat icon-karaoke" style="margin-right: 6px;"></span> Karaoke' },
+            { key: 'giaitri', label: '<span class="icon-cat icon-giaitri" style="margin-right: 6px;"></span> Giải Trí' },
             { key: 'sleep', label: '<span class="icon-cat icon-sleep" style="margin-right: 6px;"></span> Đi Ngủ' },
-            { key: 'cooking', label: '<span class="icon-cat icon-cooking" style="margin-right: 6px;"></span> Nấu Ăn' }
+            { key: 'cooking', label: '<span class="icon-cat icon-cooking" style="margin-right: 6px;"></span> Nấu Ăn' },
+            { key: 'alone', label: '<span class="icon-cat icon-alone" style="margin-right: 6px;"></span> Alone' }
         ];
 
         const songCats = getSongCategoriesForUI(song);
@@ -2467,7 +2523,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             const chk = row.querySelector('input');
-            const catCleanMap = { nhacdo: 'Nhạc Đỏ', sleep: 'Đi Ngủ', cooking: 'Nấu Ăn', karaoke: 'Karaoke', trghy: 'trghy' };
+            const catCleanMap = { nhacdo: 'Nhạc Đỏ', sleep: 'Đi Ngủ', cooking: 'Nấu Ăn', alone: 'Alone', karaoke: 'Karaoke', giaitri: 'Giải Trí', trghy: 'trghy' };
             const catCleanName = catCleanMap[cat.key] || 'danh sách';
 
             chk.addEventListener('click', (e) => {
@@ -2523,7 +2579,9 @@ document.addEventListener('DOMContentLoaded', () => {
             tghy: '<span class="icon-cat icon-trghy"></span>',
             xxx: '<span class="icon-cat icon-trghy"></span>',
             cooking: '<span class="icon-cat icon-cooking" style="margin-right: 4px;"></span> Nấu ăn',
+            alone: '<span class="icon-cat icon-alone" style="margin-right: 4px;"></span> Alone',
             karaoke: '<span class="icon-cat icon-karaoke" style="margin-right: 4px;"></span> Karaoke',
+            giaitri: '<span class="icon-cat icon-giaitri" style="margin-right: 4px;"></span> Giải Trí',
             sleep: '<span class="icon-cat icon-sleep" style="margin-right: 4px;"></span> Đi ngủ'
         };
 
@@ -2548,15 +2606,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function updateLoopModeButtonUI() {
-        if (!modeIcon || !modeLabel) return;
+        if (window.LocalSoundIcons) {
+            window.LocalSoundIcons.setLoopMode(loopMode);
+        }
+        // Update text label
+        if (!modeLabel) return;
         if (loopMode === 'one') {
-            modeIcon.textContent = '🔂';
             modeLabel.textContent = 'Lặp 1 bài';
         } else if (loopMode === 'shuffle') {
-            modeIcon.textContent = '🔀';
             modeLabel.textContent = 'Ngẫu nhiên';
         } else {
-            modeIcon.textContent = '🔁';
             modeLabel.textContent = 'Theo thứ tự';
         }
     }
@@ -2750,8 +2809,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         showToast(`Cập nhật folder thất bại: ${error?.message || 'Không rõ nguyên nhân.'}`, 'warning');
                     });
             } else {
-                const catCleanMap = { nhacdo: 'Nhạc Đỏ', sleep: 'Đi Ngủ', cooking: 'Nấu Ăn', karaoke: 'Karaoke', trghy: 'trghy', tghy: 'trghy', xxx: 'trghy' };
-                const priorityKeys = ['trghy', 'tghy', 'xxx', 'nhacdo', 'karaoke', 'sleep', 'cooking'];
+                const catCleanMap = { nhacdo: 'Nhạc Đỏ', sleep: 'Đi Ngủ', cooking: 'Nấu Ăn', alone: 'Alone', karaoke: 'Karaoke', giaitri: 'Giải Trí', trghy: 'trghy', tghy: 'trghy', xxx: 'trghy' };
+                const priorityKeys = ['trghy', 'tghy', 'xxx', 'nhacdo', 'karaoke', 'giaitri', 'sleep', 'cooking', 'alone'];
                 let activeCatKey = null;
                 for (let key of priorityKeys) {
                     if (cats.includes(key)) {
@@ -3227,7 +3286,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Helpers ---
     function formatTime(seconds) {
-        if (isNaN(seconds)) return '00:00';
+        if (!Number.isFinite(seconds) || seconds < 0) return '00:00';
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
