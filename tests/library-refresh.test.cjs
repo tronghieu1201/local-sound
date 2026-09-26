@@ -47,6 +47,7 @@ function harness() {
     const rendered = [];
     const songListEl = { innerHTML: 'Initial loading indicator' };
     const totalCountEl = { textContent: '' };
+    const unfiledCountEl = { textContent: '' };
     const audio = { src: 'https://audio.example/playing.mp3', currentTime: 42, paused: false, volume: 0.75 };
     const context = vm.createContext({
         document: { visibilityState: 'visible', querySelector: () => null, getElementById: () => null },
@@ -62,6 +63,15 @@ function harness() {
         audio,
         songListEl,
         totalCountEl,
+        unfiledCountEl,
+        nhacdoCountEl: null,
+        tghyCountEl: null,
+        cookingCountEl: null,
+        aloneCountEl: null,
+        karaokeCountEl: null,
+        giaitriCountEl: null,
+        weddingCountEl: null,
+        sleepCountEl: null,
         playlistHeadingEl: { textContent: '' },
         playlistCountEl: { textContent: '' },
         fetchAppwriteSongs() {
@@ -69,7 +79,6 @@ function harness() {
             requests.push(request);
             return request.promise;
         },
-        updateCategoryBadges() {},
         renderFolders() {},
         getSongCategoriesForUI(song) { return song.categories; },
         isTrghyCategory(categories) { return categories.includes('trghy'); },
@@ -101,6 +110,8 @@ function harness() {
         function renderSongList() { recordRender(currentPlaylist.map(song => song.id)); }
         ${[
             'getCurrentPlayingSong',
+            'isSongUnfiled',
+            'updateCategoryBadges',
             'sortPlaylist',
             'filterAndRenderSongs',
             'fetchSongs',
@@ -129,7 +140,7 @@ function harness() {
     `, context, { filename: 'production-library-refresh.js' });
 
     return {
-        context, requests, rendered, audio, songListEl, totalCountEl, api: context.api,
+        context, requests, rendered, audio, songListEl, totalCountEl, unfiledCountEl, api: context.api,
         async tick(milliseconds = 200) {
             now += milliseconds;
             for (const [id, timer] of Array.from(timers)) {
@@ -197,6 +208,26 @@ test('refresh keeps the selected category, search and sort', async () => {
     assert.equal(snapshot.sortOption, 'title-desc');
     assert.deepEqual(Array.from(snapshot.playlist), Array.from({ length: 9 }, (_, i) => `song-${9 - i}`));
     assert.equal(app.audio.volume, 0.75);
+});
+
+test('unfiled view only shows songs that have not been assigned to any folder', async () => {
+    const app = harness();
+    const unfiledSong = { id: 'unfiled', title: 'Ai Là Người Thương Em', categories: [], folders: [] };
+    const assignedSongs = [
+        { id: 'nightmare', title: 'Ác Mộng Đẹp', categories: ['trghy'], folders: ['trghy'] },
+        { id: 'sedative', title: 'An Thần', categories: ['trghy'], folders: ['trghy'] }
+    ];
+
+    await app.load([unfiledSong, ...assignedSongs]);
+    assert.equal(app.unfiledCountEl.textContent, 1);
+
+    app.api.setView('unfiled', '', 'title-asc');
+    const loading = app.api.fetchSongs({ background: true });
+    await settle();
+    app.requests[1].resolve([unfiledSong, ...assignedSongs]);
+    await loading;
+
+    assert.deepEqual(Array.from(app.api.snapshot().playlist), ['unfiled']);
 });
 
 test('scheduling is disabled until initial loading completes, while hidden, and while offline', async () => {

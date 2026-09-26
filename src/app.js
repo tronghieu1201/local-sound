@@ -138,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const songListEl = document.getElementById('song-list');
     const totalCountEl = document.getElementById('total-count');
+    const unfiledCountEl = document.getElementById('unfiled-count');
     const nhacdoCountEl = document.getElementById('nhacdo-count');
     const tghyCountEl = document.getElementById('tghy-count');
     const cookingCountEl = document.getElementById('cooking-count');
@@ -1628,7 +1629,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return isCloudCategoryActive(song, catName);
     }
 
+    function isSongUnfiled(song) {
+        return Boolean(song) && normalizeFolderList(song.folders).length === 0;
+    }
+
     function updateCategoryBadges() {
+        let unfiledCount = 0;
         let nhacdoCount = 0;
         let tghyCount = 0;
         let cookingCount = 0;
@@ -1641,6 +1647,7 @@ document.addEventListener('DOMContentLoaded', () => {
         allSongs.forEach(song => {
             if (!song) return;
             const cats = getSongCategoriesForUI(song);
+            if (isSongUnfiled(song)) unfiledCount++;
             if (cats.includes('nhacdo')) nhacdoCount++;
             if (isTrghyCategory(cats)) tghyCount++;
             if (cats.includes('cooking')) cookingCount++;
@@ -1651,6 +1658,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (cats.includes('sleep')) sleepCount++;
         });
 
+        if (unfiledCountEl) unfiledCountEl.textContent = unfiledCount;
         if (nhacdoCountEl) nhacdoCountEl.textContent = nhacdoCount;
         if (tghyCountEl) tghyCountEl.textContent = tghyCount;
         if (cookingCountEl) cookingCountEl.textContent = cookingCount;
@@ -1727,7 +1735,10 @@ document.addEventListener('DOMContentLoaded', () => {
         currentPlaylist = [...allSongs];
         const isMobile = window.innerWidth <= 768;
 
-        if (currentTab === 'nhacdo') {
+        if (currentTab === 'unfiled') {
+            currentPlaylist = currentPlaylist.filter(isSongUnfiled);
+            playlistHeadingEl.textContent = 'Bài Hát Chưa Chọn';
+        } else if (currentTab === 'nhacdo') {
             currentPlaylist = currentPlaylist.filter(s => s && getSongCategoriesForUI(s).includes('nhacdo'));
             playlistHeadingEl.textContent = isMobile ? 'Nhạc Đỏ' : 'Danh Sách Bài Hát Nhạc Đỏ';
         } else if (currentTab === 'tghy' || currentTab === 'trghy') {
